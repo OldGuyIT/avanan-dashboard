@@ -19,7 +19,7 @@ services:
     environment:
       POSTGRES_DB: avanan
       POSTGRES_USER: avanan
-      POSTGRES_PASSWORD: Caramel!Ultra7!Puppy!Eclipse!Handlebar
+      POSTGRES_PASSWORD: avanan
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped

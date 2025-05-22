@@ -13,7 +13,7 @@ def get_db():
             dbname=os.environ.get("POSTGRES_DB", "avanan"),
             user=os.environ.get("POSTGRES_USER", "avanan"),
             password=os.environ.get("POSTGRES_PASSWORD", ""),
-            host="db"
+            host="localhost"
         )
     return g.db
 
