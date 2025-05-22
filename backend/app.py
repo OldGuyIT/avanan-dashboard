@@ -1,20 +1,31 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 import requests
 import psycopg2
 from datetime import datetime
 from flask_cors import CORS
-
+import os
 app = Flask(__name__)
 CORS(app)
 
-conn = psycopg2.connect(
-    dbname="avanan", user="user", password="pass", host="db"
-)
+def get_db():
+    if 'db' not in g:
+        g.db = psycopg2.connect(
+            dbname=os.environ.get("POSTGRES_DB", "avanan"),
+            user=os.environ.get("POSTGRES_USER", "avanan"),
+            password=os.environ.get("POSTGRES_PASSWORD", ""),
+            host="db"
+        )
+    return g.db
+
+@app.teardown_appcontext
+def close_db(error):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
 @app.route("/api/new-entry", methods=["POST"])
 def new_entry():
     data = request.json
-    # Assume data contains: {timestamp, email, ip1, ip2, tenant}
     def enrich_ip(ip):
         r = requests.get(f"http://ip-api.com/json/{ip}")
         res = r.json()
@@ -23,6 +34,7 @@ def new_entry():
     ip1_data = enrich_ip(data['ip1'])
     ip2_data = enrich_ip(data['ip2'])
 
+    conn = get_db()
     cur = conn.cursor()
     cur.execute("""
         INSERT INTO avanan_alerts (
@@ -39,13 +51,62 @@ def new_entry():
     cur.close()
     return jsonify({"status": "success"})
 
-@app.route("/api/last-entries")
+@app.route('/api/parse-entry', methods=['POST'])
+def parse_entry():
+    data = request.json
+    return jsonify({"parsed": data}), 200
+
+@app.route("/api/last-entries", methods=["GET"])
 def last_entries():
+    conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM avanan_alerts ORDER BY timestamp DESC LIMIT 25")
-    results = cur.fetchall()
+    cur.execute("""
+        SELECT * FROM avanan_alerts
+        ORDER BY timestamp DESC
+        LIMIT 25
+    """)
+    rows = cur.fetchall()
+    columns = [desc[0] for desc in cur.description]
     cur.close()
-    return jsonify(results)
+    entries = [dict(zip(columns, row)) for row in rows]
+    return jsonify(entries)
+
+@app.route("/api/all-entries", methods=["GET"])
+def all_entries():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM avanan_alerts ORDER BY timestamp DESC")
+    rows = cur.fetchall()
+    columns = [desc[0] for desc in cur.description]
+    cur.close()
+    entries = [dict(zip(columns, row)) for row in rows]
+    return jsonify(entries)
+
+@app.route("/api/tenant-domains", methods=["GET", "POST", "DELETE"])
+def tenant_domains():
+    conn = get_db()
+    cur = conn.cursor()
+    if request.method == "GET":
+        cur.execute("SELECT * FROM tenant_domains ORDER BY domain ASC")
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        cur.close()
+        return jsonify([dict(zip(columns, row)) for row in rows])
+    elif request.method == "POST":
+        data = request.json
+        cur.execute(
+            "INSERT INTO tenant_domains (domain, tenant_name) VALUES (%s, %s) ON CONFLICT (domain) DO UPDATE SET tenant_name = EXCLUDED.tenant_name",
+            (data["domain"], data["tenant_name"])
+        )
+        conn.commit()
+        cur.close()
+        return jsonify({"status": "success"})
+    elif request.method == "DELETE":
+        data = request.json
+        cur.execute("DELETE FROM tenant_domains WHERE domain = %s", (data["domain"],))
+        conn.commit()
+        cur.close()
+        return jsonify({"status": "deleted"})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
