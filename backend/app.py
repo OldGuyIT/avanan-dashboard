@@ -12,7 +12,7 @@ def get_db():
         g.db = psycopg2.connect(
             dbname=os.environ.get("POSTGRES_DB", "avanan"),
             user=os.environ.get("POSTGRES_USER", "avanan"),
-            password=os.environ.get("POSTGRES_PASSWORD", ""),
+            password=os.environ.get("POSTGRES_PASSWORD", "avanan"),
             host="localhost"
         )
     return g.db
