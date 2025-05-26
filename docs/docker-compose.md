@@ -1,110 +1,107 @@
-# Troubleshooting Guide
+# Docker Compose Guide
 
-This guide covers common issues and solutions when running the Avanan Dashboard with Docker Compose.
-
----
-
-## 1. Containers Won't Start or Exit Immediately
-
-- **Check logs:**  
-  Run `docker compose logs <service>` (e.g., `docker compose logs backend`) to see error messages.
-- **Common causes:**  
-  - Missing or incorrect environment variables.
-  - Port conflicts (another service already using 5432, 8000, or 5173).
-  - Syntax errors in `docker-compose.yml`.
+This document explains how to use and customize the `docker-compose.yml` file for the Avanan Dashboard project.
 
 ---
 
-## 2. Backend Cannot Connect to Database
+## Overview
 
-- **Symptoms:**  
-  Backend logs show connection errors or timeouts.
-- **Solutions:**  
-  - Ensure `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_HOST` match in both `db` and `backend` services.
-  - Make sure `POSTGRES_HOST` is set to `db` (the service name).
-  - Wait a few seconds and restart the backend (`docker compose restart backend`)—the database may not be ready yet.
-  - Check for typos in environment variable names.
+The `docker-compose.yml` file defines three services:
 
----
+- **db**: PostgreSQL database
+- **backend**: Flask API server
+- **frontend**: React (Vite) frontend
 
-## 3. Database Data Not Persisting
-
-- **Symptoms:**  
-  Data disappears after restarting containers.
-- **Solutions:**  
-  - Ensure you are using a persistent volume:
-    ```yaml
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ```
-  - If using a host directory, make sure the directory exists and is writable.
+All services are orchestrated together for easy local development and deployment.
 
 ---
 
-## 4. Frontend Not Loading or Showing Errors
+## Environment Variables and Credentials
 
-- **Symptoms:**  
-  Blank page, 404 errors, or "Cannot connect to backend" messages.
-- **Solutions:**  
-  - Make sure the frontend is running (`docker compose ps`).
-  - Check the browser console for errors.
-  - Ensure the backend is running and accessible at the expected URL (`http://localhost:8000`).
-  - If you changed ports, update API URLs in the frontend code or environment.
+### Changing PostgreSQL Credentials
 
----
+You can change the database name, user, and password in the `db` service:
 
-## 5. IP Enrichment Not Working or Rate Limited
+```yaml
+services:
+  db:
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypass
+```
 
-- **Symptoms:**  
-  No enrichment data, errors from ip-api.com, or "rate limit exceeded" messages.
-- **Solutions:**  
-  - The free tier of [ip-api.com](http://ip-api.com/) allows 45 requests per minute per IP.
-  - If you need more, set the `IP_API_URL` environment variable in the backend service to use a different provider or a paid plan.
-  - Check backend logs for error messages from the enrichment API.
+**Important:**  
+You must also update these variables in the `backend` service so the Flask app can connect:
 
----
+```yaml
+  backend:
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypass
+      POSTGRES_HOST: db
+```
 
-## 6. Docker Compose Version Issues
-
-- **Symptoms:**  
-  Errors like "unsupported Compose file version" or unknown keys.
-- **Solutions:**  
-  - Make sure you have Docker Compose v2 or later:  
-    `docker compose version`
-  - Upgrade Docker and Docker Compose if needed.
+No code changes are needed—just update the environment variables in `docker-compose.yml`.
 
 ---
 
-## 7. File Permission Issues
+## Ports
 
-- **Symptoms:**  
-  Errors about permission denied, especially with volumes or host directories.
-- **Solutions:**  
-  - Ensure your user has permission to read/write the project directory.
-  - If using a host directory for Postgres data, make sure it is owned by your user or adjust permissions.
+- **Frontend:** Exposed on `5173` (default Vite port)
+- **Backend:** Exposed on `8000`
+- **PostgreSQL:** Exposed on `5432`
 
----
-
-## 8. Port Already in Use
-
-- **Symptoms:**  
-  Errors like "port is already allocated".
-- **Solutions:**  
-  - Stop other services using the same port.
-  - Change the port mapping in `docker-compose.yml`.
+You can change these ports in the `ports` section of each service if needed.
 
 ---
 
-## 9. General Debugging Tips
+## Persistent Database Storage
 
-- Use `docker compose ps` to see running containers.
-- Use `docker compose logs <service>` to view logs.
-- Use `docker compose down -v` to remove containers and volumes (warning: this deletes data).
-- Restart individual services with `docker compose restart <service>`.
+The database uses a Docker volume for persistent storage:
+
+```yaml
+volumes:
+  postgres_data:
+```
+
+This ensures your data is not lost when containers are stopped or rebuilt.
 
 ---
 
-## Still Stuck?
+## Building and Running
 
-- Check the [README.md](../README.md) and [docker-compose.md](./docker-compose.md) for more info.
-- Open an issue on GitHub with your error messages and setup details.
+To build and start all services:
+
+```sh
+docker-compose up --build
+```
+
+To stop:
+
+```sh
+docker-compose down
+```
+
+---
+
+## Customizing Further
+
+- **Add environment variables** as needed to the `backend` or `frontend` services.
+- **Add more services** (e.g., for testing, caching) as your project grows.
+- **Use `.env` files** if you want to keep secrets out of `docker-compose.yml` (see Docker Compose docs).
+
+---
+
+## Troubleshooting
+
+- If the backend cannot connect to the database, double-check that the credentials and host match in both `db` and `backend` services.
+- If you change ports, update your URLs accordingly.
+- For advanced Docker Compose usage, see the [official documentation](https://docs.docker.com/compose/).
+
+---
+
+## Questions?
+
+Open an issue or check the main [README.md](../README.md) for more details.
