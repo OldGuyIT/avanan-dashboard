@@ -70,6 +70,13 @@ This ensures your data is not lost when containers are stopped or rebuilt.
 
 ---
 
+## Environment Variables and Credentials
+
+Use the `.env.example` file as a template for your environment variables.  
+Copy it to `.env` and adjust values as needed.
+
+---
+
 ## Building and Running
 
 To build and start all services:

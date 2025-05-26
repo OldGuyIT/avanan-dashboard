@@ -129,3 +129,53 @@ html, body {
   min-width: 300px;
   margin-top: 0rem;
 }
+
+/* ===== Custom table styles (used in various pages) ===== */
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #222;
+  color: #eee;
+}
+
+/* ===== Custom table header and cell styles ===== */
+.custom-table th {
+  padding: 0.5em;
+  border-bottom: 2px solid #064376;
+  background: #242424;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* ===== Custom table cell styles ===== */
+.custom-table td {
+  padding: 0.5em;
+  font-size: 0.75rem;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid #064376;
+  border-right: 1px solid #064376;
+}
+
+/* ===== Custom table last row and cell styles ===== */
+.custom-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ===== Custom table last column styles ===== */
+.custom-table th:last-child,
+.custom-table td:last-child {
+  border-right: none;
+}
+
+/* ===== Dashboard map border styles (used in Dashboard.jsx) ===== */
+.dashboard-map-border {
+  border: 4px solid #064376;
+  border-radius: 2rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 1100px;   /* Set your desired width */
+  height: 410px;   /* Set your desired height */
+  margin: 0 auto;  /* Center horizontally if you want */
+}

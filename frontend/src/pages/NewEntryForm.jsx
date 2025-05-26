@@ -16,21 +16,14 @@ function parseEntry(text) {
 
   // Optionally, filter for valid IPv4/IPv6 (basic check)
   const ipMatches = parenMatches.filter(ip =>
-    /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) || // IPv4
-    /^[a-fA-F0-9:]+$/.test(ip)            // IPv6 (shortened or full)
+    /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) || /^[a-fA-F0-9:]+$/.test(ip)
   );
-
-  const ip1 = ipMatches[0] || "";
-  const ip2 = ipMatches[1] || "";
-
-  const tenant = email.split("@")[1] || "";
 
   return {
     timestamp,
-    tenant,
-    email,
-    ip1,
-    ip2,
+    user_email: email,
+    ip1: ipMatches[0] || "",
+    ip2: ipMatches[1] || "",
   };
 }
 
@@ -38,6 +31,7 @@ export default function NewEntryForm() {
   const [rawText, setRawText] = useState("");
   const [message, setMessage] = useState(null);
   const [lastEntry, setLastEntry] = useState(null);
+  const [error, setError] = useState(null);
 
   // Helper to poll for enrichment after submitting a new entry
   async function fetchEnrichedEntry(id, maxAttempts = 10, delayMs = 1000) {
@@ -58,27 +52,34 @@ export default function NewEntryForm() {
   // Handle form submission: parse, send to backend, and poll for enrichment
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setMessage(null);
     const parsed = parseEntry(rawText);
 
-    const res = await fetch("/api/new-entry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parsed),
-    });
+    try {
+      const res = await fetch("/api/new-entry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsed),
+      });
 
-    if (res.ok) {
-      setMessage("✅ Entry saved successfully!");
-      setRawText("");
-      const createdEntry = await res.json();
-      if (createdEntry && createdEntry.id) {
-        // Poll for enrichment
-        const enriched = await fetchEnrichedEntry(createdEntry.id);
-        setLastEntry(enriched || createdEntry);
+      if (res.ok) {
+        setMessage("✅ Entry saved successfully!");
+        setRawText("");
+        const createdEntry = await res.json();
+        if (createdEntry && createdEntry.id) {
+          // Poll for enrichment
+          const enriched = await fetchEnrichedEntry(createdEntry.id);
+          setLastEntry(enriched || createdEntry);
+        } else {
+          setLastEntry(null);
+        }
       } else {
-        setLastEntry(null);
+        const errData = await res.json();
+        setError(errData.message || "❌ Failed to save entry.");
       }
-    } else {
-      setMessage("❌ Failed to save entry.");
+    } catch (err) {
+      setError("❌ Failed to save entry (network error).");
     }
   };
 
@@ -111,6 +112,7 @@ export default function NewEntryForm() {
             Submit
           </button>
           {message && <p className="mt-2 text-lg">{message}</p>}
+          {error && <p className="mt-2 text-lg" style={{ color: "red" }}>{error}</p>}
         </form>
       </div>
       {/* Last Entry sub-container: shows the most recently added entry */}

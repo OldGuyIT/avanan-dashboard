@@ -6,13 +6,7 @@ import "leaflet/dist/leaflet.css";
 
 // Rainbow colors for lines
 const rainbowColors = [
-  "#FF0000", // Red
-  "#FF7F00", // Orange
-  "#FFFF00", // Yellow
-  "#00FF00", // Green
-  "#0000FF", // Blue
-  "#4B0082", // Indigo
-  "#8B00FF", // Violet
+  "#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#8B00FF"
 ];
 
 // Helper to parse geo string
@@ -37,17 +31,17 @@ const whiteCircleIcon = new L.DivIcon({
   iconAnchor: [9, 9],
 });
 
-// Helper to auto-fit map to ip1 markers
-function FitBounds({ points }) {
-  const map = useMap();
-  const coords = points
-    .map((p) => parseGeo(p.ip1_geo))
-    .filter((c) => c && !isNaN(c[0]) && !isNaN(c[1]));
-  if (coords.length === 0) return null;
-  const bounds = L.latLngBounds(coords);
-  map.fitBounds(bounds, { padding: [50, 50] });
-  return null;
-}
+// Optional: FitBounds helper (uncomment to use)
+// function FitBounds({ points }) {
+//   const map = useMap();
+//   const coords = points
+//     .map((p) => parseGeo(p.ip1_geo))
+//     .filter((c) => c && !isNaN(c[0]) && !isNaN(c[1]));
+//   if (coords.length === 0) return null;
+//   const bounds = L.latLngBounds(coords);
+//   map.fitBounds(bounds, { padding: [50, 50] });
+//   return null;
+// }
 
 export default function DashboardMapView({ points }) {
   // Sort newest to oldest by timestamp
@@ -89,85 +83,86 @@ export default function DashboardMapView({ points }) {
   const zoom = hasOutsideUS ? 2 : 4;
 
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      style={{
-        height: "400px",
-        width: "100%",
-        borderRadius: "0rem",
-        marginBottom: "2rem",
-      }}
-      scrollWheelZoom={true}
-      className="shadow-lg"
-    >
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
-      />
-      <MarkerClusterGroup>
-        {lastPoints.map((p, i) => {
-          const ip1Coords = parseGeo(p.ip1_geo);
-          const ip2Coords = parseGeo(p.ip2_geo);
-          return (
-            <React.Fragment key={i}>
-              {ip1Coords && (
-                <Marker position={ip1Coords} icon={blackCircleIcon}>
-                  <Popup>
-                    <div>
+    <div className="dashboard-map-border">
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        style={{
+          width: "100%",
+          height: "100%",
+          marginBottom: "0", // Let the border div control spacing
+        }}
+        scrollWheelZoom={true}
+        className="shadow-lg"
+      >
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
+        />
+        <MarkerClusterGroup>
+          {lastPoints.map((p, i) => {
+            const ip1Coords = parseGeo(p.ip1_geo);
+            const ip2Coords = parseGeo(p.ip2_geo);
+            return (
+              <React.Fragment key={i}>
+                {ip1Coords && (
+                  <Marker position={ip1Coords} icon={blackCircleIcon}>
+                    <Popup>
                       <div>
-                        <b>User:</b> {p.user_email || p.email}
+                        <div>
+                          <b>User:</b> {p.user_email || p.email}
+                        </div>
+                        <div>
+                          <b>Tenant:</b> {p.tenant}
+                        </div>
+                        <div>
+                          <b>Timestamp:</b> {p.timestamp}
+                        </div>
+                        <div>
+                          <b>IP1:</b> {p.ip1}
+                        </div>
+                        <div>
+                          <b>Country:</b> {p.ip1_country}
+                        </div>
                       </div>
+                    </Popup>
+                  </Marker>
+                )}
+                {ip2Coords && (
+                  <Marker position={ip2Coords} icon={whiteCircleIcon}>
+                    <Popup>
                       <div>
-                        <b>Tenant:</b> {p.tenant}
+                        <div>
+                          <b>User:</b> {p.user_email || p.email}
+                        </div>
+                        <div>
+                          <b>Tenant:</b> {p.tenant}
+                        </div>
+                        <div>
+                          <b>Timestamp:</b> {p.timestamp}
+                        </div>
+                        <div>
+                          <b>IP2:</b> {p.ip2}
+                        </div>
+                        <div>
+                          <b>Country:</b> {p.ip2_country}
+                        </div>
                       </div>
-                      <div>
-                        <b>Timestamp:</b> {p.timestamp}
-                      </div>
-                      <div>
-                        <b>IP1:</b> {p.ip1}
-                      </div>
-                      <div>
-                        <b>Country:</b> {p.ip1_country}
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              )}
-              {ip2Coords && (
-                <Marker position={ip2Coords} icon={whiteCircleIcon}>
-                  <Popup>
-                    <div>
-                      <div>
-                        <b>User:</b> {p.user_email || p.email}
-                      </div>
-                      <div>
-                        <b>Tenant:</b> {p.tenant}
-                      </div>
-                      <div>
-                        <b>Timestamp:</b> {p.timestamp}
-                      </div>
-                      <div>
-                        <b>IP2:</b> {p.ip2}
-                      </div>
-                      <div>
-                        <b>Country:</b> {p.ip2_country}
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              )}
-              {ip1Coords && ip2Coords && (
-                <Polyline
-                  positions={[ip1Coords, ip2Coords]}
-                  pathOptions={{ color: rainbowColors[i % rainbowColors.length], weight: 3, opacity: 0.85 }}
-                />
-              )}
-            </React.Fragment>
-          );
-        })}
-      </MarkerClusterGroup>
-      {/* <FitBounds points={lastPoints} /> */}
-    </MapContainer>
+                    </Popup>
+                  </Marker>
+                )}
+                {ip1Coords && ip2Coords && (
+                  <Polyline
+                    positions={[ip1Coords, ip2Coords]}
+                    pathOptions={{ color: rainbowColors[i % rainbowColors.length], weight: 3, opacity: 0.85 }}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </MarkerClusterGroup>
+        {/* Optionally enable FitBounds: <FitBounds points={lastPoints} /> */}
+      </MapContainer>
+    </div>
   );
 }

@@ -76,6 +76,18 @@ docker-compose up --build
 
 ---
 
+### 3. Configure Environment Variables
+
+Copy `.env.example` to `.env` and update values as needed:
+
+```sh
+cp .env.example .env
+```
+
+Edit `.env` to match your setup.
+
+---
+
 ## CSV Template for Tenant / Domains List
 
 - Download the template from the UI or use this format:
@@ -107,7 +119,7 @@ Please open issues or pull requests. See [CONTRIBUTING.md](CONTRIBUTING.md) for 
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 

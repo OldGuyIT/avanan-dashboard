@@ -69,6 +69,19 @@ volumes:
 
 ---
 
+## 2.1. Configure Environment Variables
+
+Before running the project, copy the example environment file and edit as needed:
+
+```sh
+cp .env.example .env
+```
+
+Open `.env` in your editor and adjust any values to match your setup (such as database credentials or API URLs).  
+This file is used by both the backend and frontend for configuration.
+
+---
+
 ## 3. Build and Run with Docker Compose
 
 ### Install Docker and Docker Compose (if not already installed)

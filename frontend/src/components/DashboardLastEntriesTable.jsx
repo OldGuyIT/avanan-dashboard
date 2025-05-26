@@ -1,53 +1,39 @@
 const rainbowColors = [
-  "#FF0000", // Red
-  "#FF7F00", // Orange
-  "#FFFF00", // Yellow
-  "#00FF00", // Green
-  "#0000FF", // Blue
-  "#4B0082", // Indigo
-  "#8B00FF", // Violet
+  "#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#8B00FF"
 ];
 
 export default function DashboardLastEntriesTable({ entries }) {
   if (!entries || entries.length === 0) return null;
 
-  // Sort newest to oldest and take the first 7
   const lastEntries = [...entries]
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
     .slice(0, 7);
 
   return (
     <div style={{ overflowX: "auto", marginTop: "1.5rem" }}>
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          background: "#222",
-          color: "#fff",
-        }}
-      >
+      <table className="custom-table">
         <thead>
           <tr>
-            <th style={thStyle}></th>
-            <th style={thStyle}>Timestamp</th>
-            <th style={thStyle}>Tenant</th>
-            <th style={thStyle}>User Email</th>
-            <th style={thStyle}>IP1</th>
-            <th style={thStyle}>IP1 City</th>
-            <th style={thStyle}>IP1 State</th>
-            <th style={thStyle}>IP1 Country</th>
-            <th style={thStyle}>IP1 ISP</th>
-            <th style={thStyle}>IP2</th>
-            <th style={thStyle}>IP2 City</th>
-            <th style={thStyle}>IP2 State</th>
-            <th style={thStyle}>IP2 Country</th>
-            <th style={thStyle}>IP2 ISP</th>
+            <th></th>
+            <th>Timestamp</th>
+            <th>Tenant</th>
+            <th>User Email</th>
+            <th>IP1</th>
+            <th>IP1 City</th>
+            <th>IP1 State</th>
+            <th>IP1 Country</th>
+            <th>IP1 ISP</th>
+            <th>IP2</th>
+            <th>IP2 City</th>
+            <th>IP2 State</th>
+            <th>IP2 Country</th>
+            <th>IP2 ISP</th>
           </tr>
         </thead>
         <tbody>
           {lastEntries.map((entry, i) => (
-            <tr key={i} style={{ borderBottom: "1px solid #064376" }}>
-              <td style={{ ...tdStyle, borderRight: "none" }}>
+            <tr key={i}>
+              <td style={{ borderRight: "none" }}>
                 <span
                   style={{
                     display: "inline-block",
@@ -60,19 +46,19 @@ export default function DashboardLastEntriesTable({ entries }) {
                   title={`Color for map line #${i + 1}`}
                 ></span>
               </td>
-              <td style={tdStyle}>{entry.timestamp}</td>
-              <td style={tdStyle}>{entry.tenant}</td>
-              <td style={tdStyle}>{entry.user_email || entry.email}</td>
-              <td style={tdStyle}>{entry.ip1}</td>
-              <td style={tdStyle}>{entry.ip1_city}</td>
-              <td style={tdStyle}>{entry.ip1_state}</td>
-              <td style={tdStyle}>{entry.ip1_country}</td>
-              <td style={tdStyle}>{entry.ip1_isp}</td>
-              <td style={tdStyle}>{entry.ip2}</td>
-              <td style={tdStyle}>{entry.ip2_city}</td>
-              <td style={tdStyle}>{entry.ip2_state}</td>
-              <td style={tdStyle}>{entry.ip2_country}</td>
-              <td style={tdStyle}>{entry.ip2_isp}</td>
+              <td>{entry.timestamp}</td>
+              <td>{entry.tenant}</td>
+              <td>{entry.user_email || entry.email}</td>
+              <td>{entry.ip1}</td>
+              <td>{entry.ip1_city}</td>
+              <td>{entry.ip1_state}</td>
+              <td>{entry.ip1_country}</td>
+              <td>{entry.ip1_isp}</td>
+              <td>{entry.ip2}</td>
+              <td>{entry.ip2_city}</td>
+              <td>{entry.ip2_state}</td>
+              <td>{entry.ip2_country}</td>
+              <td>{entry.ip2_isp}</td>
             </tr>
           ))}
         </tbody>
@@ -80,24 +66,3 @@ export default function DashboardLastEntriesTable({ entries }) {
     </div>
   );
 }
-
-const thStyle = {
-  borderBottom: "2px solid #064376",
-  borderRight: "1px solid #064376",
-  padding: "0.5rem",
-  background: "#242424",
-  textAlign: "center",
-  verticalAlign: "middle",
-  whiteSpace: "nowrap",
-  color: "#064376",
-  fontWeight: "bold",
-};
-
-const tdStyle = {
-  padding: "0.5rem",
-  fontSize: "0.95rem",
-  textAlign: "center",
-  verticalAlign: "middle",
-  borderRight: "1px solid #064376",
-  color: "#fff",
-};
