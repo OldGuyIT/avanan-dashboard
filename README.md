@@ -3,6 +3,8 @@
 A full-stack dashboard for Avanan alerts, built with React (Vite), Flask, and PostgreSQL.  
 Includes CSV upload/download for tenant/domain management, IP enrichment, and a modern UI.
 
+**For a detailed setup and troubleshooting guide, see [docs/full-guide.md](docs/full-guide.md).**
+
 ---
 
 ## Expected Directory Structure
@@ -20,15 +22,7 @@ avanan-dashboard/
 ├── README.md
 ```
 
-
-_______________________________________________________
-   ____        _      _       _____ _             _   
-  / __ \      (_)    | |     / ____| |           | |  
- | |  | |_   _ _  ___| | __ | (___ | |_ __ _ _ __| |_ 
- | |  | | | | | |/ __| |/ /  \___ \| __/ _` | '__| __|
- | |__| | |_| | | (__|   <   ____) | || (_| | |  | |_ 
-  \___\_\\__,_|_|\___|_|\_\ |_____/ \__\__,_|_|   \__|
-_______________________________________________________                                                      
+Quick Start    
                                                     
 ### 1. Clone the repository
 
@@ -69,14 +63,7 @@ docker-compose up --build
 
 ---
 
-______________________________________________________________________________
-              _     _ _ _   _                   _   _   _       _            
-     /\      | |   | (_) | (_)                 | | | \ | |     | |           
-    /  \   __| | __| |_| |_ _  ___  _ __   __ _| | |  \| | ___ | |_ ___  ___ 
-   / /\ \ / _` |/ _` | | __| |/ _ \| '_ \ / _` | | | . ` |/ _ \| __/ _ \/ __|
-  / ____ \ (_| | (_| | | |_| | (_) | | | | (_| | | | |\  | (_) | ||  __/\__ \
- /_/    \_\__,_|\__,_|_|\__|_|\___/|_| |_|\__,_|_| |_| \_|\___/ \__\___||___/
-______________________________________________________________________________                                                                             
+Additional Notes                                                  
                                                                              
 ## CSV Template for Tenant / Domains List
 
