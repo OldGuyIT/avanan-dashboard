@@ -22,7 +22,7 @@ avanan-dashboard/
 ├── README.md
 ```
 
-Quick Start    
+## Quick Start    
                                                     
 ### 1. Clone the repository
 
@@ -63,9 +63,9 @@ docker-compose up --build
 
 ---
 
-Additional Notes                                                  
+## Additional Notes                                                  
                                                                              
-## CSV Template for Tenant / Domains List
+### 1. CSV Template for Tenant / Domains List
 
 - Download the template from the UI or use this format:
 
