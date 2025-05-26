@@ -1,27 +1,46 @@
-version: '3.8'
+version: "3.9"
+
 services:
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"
-    environment:
-      - FLASK_ENV=development
-    depends_on:
-      - db
   db:
-    image: postgres
+    image: postgres:16
+    restart: always
     environment:
       POSTGRES_DB: avanan
       POSTGRES_USER: avanan
       POSTGRES_PASSWORD: avanan
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    command: flask run --host=0.0.0.0 --port=8000
+    environment:
+      FLASK_ENV: development
+      POSTGRES_DB: avanan
+      POSTGRES_USER: avanan
+      POSTGRES_PASSWORD: avanan
+      POSTGRES_HOST: db
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    command: npm run dev -- --host
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+
 volumes:
-  pgdata:
+  postgres_data:

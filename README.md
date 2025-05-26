@@ -1,12 +1,103 @@
-# React + Vite
+# Avanan Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack dashboard for Avanan alerts, built with React (Vite), Flask, and PostgreSQL.  
+Includes CSV upload/download for tenant/domain management, IP enrichment, and a modern UI.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Expected Directory Structure
 
-## Expanding the ESLint configuration
+```
+avanan-dashboard/
+├── backend/
+│   ├── app.py
+│   ├── requirements.txt
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   ├── Dockerfile
+├── docker-compose.yml
+├── README.md
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+_______________________________________________________
+   ____        _      _       _____ _             _   
+  / __ \      (_)    | |     / ____| |           | |  
+ | |  | |_   _ _  ___| | __ | (___ | |_ __ _ _ __| |_ 
+ | |  | | | | | |/ __| |/ /  \___ \| __/ _` | '__| __|
+ | |__| | |_| | | (__|   <   ____) | || (_| | |  | |_ 
+  \___\_\\__,_|_|\___|_|\_\ |_____/ \__\__,_|_|   \__|
+_______________________________________________________                                                      
+                                                    
+### 1. Clone the repository
+
+```sh
+git clone https://github.com/yourusername/avanan-dashboard.git
+cd avanan-dashboard
+```
+
+### 2. Configure Database Credentials (Optional)
+
+You can change the PostgreSQL username, password, and database name in `docker-compose.yml`:
+
+```yaml
+services:
+  db:
+    environment:
+      POSTGRES_DB: avanan
+      POSTGRES_USER: avanan
+      POSTGRES_PASSWORD: avanan
+```
+
+If you change these, **make sure to update the corresponding environment variables in the `backend` service as well** so they match.  
+The backend reads these values from environment variables at runtime—no code changes are needed.
+
+For more advanced Docker Compose usage, see [docs/docker-compose.md](docs/docker-compose.md) (if available).
+
+---
+
+### 3. Build and Run with Docker Compose
+
+```sh
+docker-compose up --build
+```
+
+- **Frontend:** [http://localhost:5173](http://localhost:5173)
+- **Backend API:** [http://localhost:8000](http://localhost:8000)
+- **PostgreSQL:** localhost:5432
+
+---
+
+______________________________________________________________________________
+              _     _ _ _   _                   _   _   _       _            
+     /\      | |   | (_) | (_)                 | | | \ | |     | |           
+    /  \   __| | __| |_| |_ _  ___  _ __   __ _| | |  \| | ___ | |_ ___  ___ 
+   / /\ \ / _` |/ _` | | __| |/ _ \| '_ \ / _` | | | . ` |/ _ \| __/ _ \/ __|
+  / ____ \ (_| | (_| | | |_| | (_) | | | | (_| | | | |\  | (_) | ||  __/\__ \
+ /_/    \_\__,_|\__,_|_|\__|_|\___/|_| |_|\__,_|_| |_| \_|\___/ \__\___||___/
+______________________________________________________________________________                                                                             
+                                                                             
+## CSV Template for Tenant / Domains List
+
+- Download the template from the UI or use this format:
+
+tenant_name,domain
+"Example Tenant, Inc.",example.com
+
+*** If a tenant name contains a comma, wrap it in double quotes.
+
+---
+
+## License
+
+MIT License
+
+---
+
+## Credits
+
+- [React](https://react.dev/)
+- [Vite](https://vitejs.dev/)
+- [Flask](https://flask.palletsprojects.com/)
+- [PostgreSQL](https://www.postgresql.org/)
