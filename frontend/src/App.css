@@ -1,24 +1,26 @@
-/* Root wrapper */
+/* ===== Root wrapper (used in main index.jsx) ===== */
 #root {
   margin: 0 auto;
   padding: 2rem;
   min-height: 100vh;
 }
 
+/* ===== Global html/body styles ===== */
 html, body {
   height: 100%;
   background: #242424;
   margin: 0;
   padding: 0;
 }
-/* Layout wrapper */
+
+/* ===== Layout wrapper (used in SidebarLayout.jsx) ===== */
 .app-layout {
   display: flex;
   min-height: 100vh;
   background: #242424;
 }
 
-/* Sidebar styles */
+/* ===== Sidebar styles (used in SidebarLayout.jsx) ===== */
 .sidebar {
   width: 200px;
   display: flex;
@@ -59,7 +61,7 @@ html, body {
   text-decoration: underline;
 }
 
-/* Content area */
+/* ===== Content area (used in SidebarLayout.jsx) ===== */
 .content-area {
   flex: 1;
   display: flex;
@@ -68,7 +70,7 @@ html, body {
   margin-right: 1rem;
 }
 
-/* Title card */
+/* ===== Title card (used in SidebarLayout.jsx) ===== */
 .page-title-card {
   width: 100%;
   display: flex;
@@ -87,6 +89,7 @@ html, body {
   padding: 1rem 0rem;
 }
 
+/* ===== Main container for page content (used in all main pages) ===== */
 .main-container {
   margin: 0 auto;
   display: flex;
@@ -101,6 +104,7 @@ html, body {
   min-width: 300px;
 }
 
+/* ===== Dashboard map container (used in Dashboard.jsx) ===== */
 .dashboard-map {
   width: 1100px;
   height: 550px;
@@ -110,6 +114,7 @@ html, body {
   align-items: center;
 }
 
+/* ===== Sub-container for sections like last entry, tables, etc. (used in various pages) ===== */
 .sub-container {
   margin: 0 auto;
   display: flex;

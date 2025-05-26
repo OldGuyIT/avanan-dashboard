@@ -1,3 +1,6 @@
+// TenantDomainListListTable.jsx
+// Renders a table of tenant/domain pairs with add, update, delete, CSV upload, and template download functionality.
+
 import React, { useEffect, useState } from "react";
 
 export default function TenantDomainListListTable() {
@@ -41,7 +44,7 @@ export default function TenantDomainListListTable() {
     setDomains(domains.filter(d => d.domain !== domain));
   };
 
-  // CSV upload handler
+  // CSV upload handler: Reads a CSV file and adds each tenant/domain pair to the backend
   const handleCSVUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -64,7 +67,7 @@ export default function TenantDomainListListTable() {
     alert("Upload complete!");
   };
 
-  // CSV template download handler
+  // CSV template download handler: Provides a blank CSV template for user download
   const handleDownloadTemplate = () => {
     const csv = "tenant_name,domain\n";
     const blob = new Blob([csv], { type: "text/csv" });
@@ -80,6 +83,7 @@ export default function TenantDomainListListTable() {
 
   return (
     <div>
+      {/* Add/Update Form */}
       <form
         onSubmit={handleSubmit}
         style={{
@@ -129,6 +133,7 @@ export default function TenantDomainListListTable() {
         />
       </div>
 
+      {/* Tenant/Domain Table */}
       <table
         style={{
           width: "100%",

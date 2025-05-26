@@ -3,6 +3,7 @@ version: "3.9"
 services:
   db:
     image: postgres:16
+    container_name: avanan-db # OPTIONAL: Set a custom container name for easier identification in Docker tools like Portainer
     restart: always
     environment:
       POSTGRES_DB: avanan
@@ -10,18 +11,21 @@ services:
       POSTGRES_PASSWORD: avanan
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # - ./pgdata:/var/lib/postgresql/data # OPTIONAL: Use a specific host directory for persistent database storage instead of a Docker-managed volume
     ports:
       - "5432:5432"
 
   backend:
     build: ./backend
+    container_name: avanan-backend # OPTIONAL: Set a custom container name for easier identification in Docker tools like Portainer
     command: flask run --host=0.0.0.0 --port=8000
     environment:
-      FLASK_ENV: development
+      FLASK_ENV: development # OPTIONAL: Enables Flask debug mode for development; remove or set to "production" for production use
       POSTGRES_DB: avanan
       POSTGRES_USER: avanan
       POSTGRES_PASSWORD: avanan
       POSTGRES_HOST: db
+      IP_API_URL: http://ip-api.com/json/ # OPTIONAL: Override the default IP enrichment API (ip-api.com); set if you need a different provider or higher rate limits
     volumes:
       - ./backend:/app
     ports:
@@ -31,6 +35,7 @@ services:
 
   frontend:
     build: ./frontend
+    container_name: avanan-frontend # OPTIONAL: Set a custom container name for easier identification in Docker tools like Portainer
     command: npm run dev -- --host
     volumes:
       - ./frontend:/app
@@ -38,7 +43,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=development # OPTIONAL: Sets Node environment to development for hot reload and better error messages
     depends_on:
       - backend
 

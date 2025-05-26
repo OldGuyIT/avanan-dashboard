@@ -106,5 +106,5 @@ This guide covers common issues and solutions when running the Avanan Dashboard 
 
 ## Still Stuck?
 
-- Check the [README.md](../README.md) and [docker-compose.md](./docker-compose.md) for more info.
+- Check the [README.md](../README.md), [docker-compose.md](./docker-compose.md), and [full-guide.md](./full-guide.md) for more info.
 - Open an issue on GitHub with your error messages and setup details.

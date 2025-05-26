@@ -1,6 +1,7 @@
 import { useState } from "react";
 import NewEntryFormTable from "../components/NewEntryFormTable";
 
+// Helper to parse the raw Avanan alert text into structured fields
 function parseEntry(text) {
   const emailMatch = text.match(/[\w.-]+@[\w.-]+/);
   const email = emailMatch ? emailMatch[0] : "";
@@ -38,7 +39,7 @@ export default function NewEntryForm() {
   const [message, setMessage] = useState(null);
   const [lastEntry, setLastEntry] = useState(null);
 
-  // Helper to poll for enrichment
+  // Helper to poll for enrichment after submitting a new entry
   async function fetchEnrichedEntry(id, maxAttempts = 10, delayMs = 1000) {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const res = await fetch(`/api/entry/${id}`);
@@ -54,6 +55,7 @@ export default function NewEntryForm() {
     return null;
   }
 
+  // Handle form submission: parse, send to backend, and poll for enrichment
   const handleSubmit = async (e) => {
     e.preventDefault();
     const parsed = parseEntry(rawText);
@@ -83,6 +85,7 @@ export default function NewEntryForm() {
   return (
     <div className="max-w-5xl mx-auto p-8">
       <div className="main-container">
+        {/* New Entry Form */}
         <form onSubmit={handleSubmit} className="space-y-0">
           <textarea
             value={rawText}
@@ -110,7 +113,7 @@ export default function NewEntryForm() {
           {message && <p className="mt-2 text-lg">{message}</p>}
         </form>
       </div>
-      {/* Last Entry sub-container */}
+      {/* Last Entry sub-container: shows the most recently added entry */}
       {lastEntry && (
         <div className="sub-container">
           <h3 className="font-bold text-xl mb-4 ">Last Entry:</h3>

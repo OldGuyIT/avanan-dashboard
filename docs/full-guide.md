@@ -1,139 +1,110 @@
-# Avanan Dashboard Full Guide
+# Troubleshooting Guide
 
-This guide provides step-by-step instructions for setting up the Avanan Dashboard on **Debian** and **Ubuntu** systems using Docker Compose.
-
----
-
-## 1. Clone the Repository
-
-### For Debian/Ubuntu
-
-Open your terminal and run:
-
-```sh
-# Install git if not already installed
-sudo apt update
-sudo apt install -y git
-
-# Clone the repository
-git clone https://github.com/yourusername/avanan-dashboard.git
-cd avanan-dashboard
-```
+This guide covers common issues and solutions when running the Avanan Dashboard with Docker Compose.
 
 ---
 
-## 2. Configure Database Credentials (Optional)
+## 1. Containers Won't Start or Exit Immediately
 
-You can change the PostgreSQL username, password, and database name in `docker-compose.yml`.
-Currently the `docker-compose.yml` uses avanan for POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.
-If you change these values, make sure to update the same variables under the `backend` service in `docker-compose.yml` so they match.
-No code changes are needed—just update the environment variables in `docker-compose.yml`.
+- **Check logs:**  
+  Run `docker compose logs <service>` (e.g., `docker compose logs backend`) to see error messages.
+- **Common causes:**  
+  - Missing or incorrect environment variables.
+  - Port conflicts (another service already using 5432, 8000, or 5173).
+  - Syntax errors in `docker-compose.yml`.
 
-**Example `docker-compose.yml` structure for credentials:**
+---
 
-```yaml
-services:
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: examplechange
-      POSTGRES_USER: examplechange
-      POSTGRES_PASSWORD: examplechange
-    ports:
-      - "5432:5432"
+## 2. Backend Cannot Connect to Database
+
+- **Symptoms:**  
+  Backend logs show connection errors or timeouts.
+- **Solutions:**  
+  - Ensure `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_HOST` match in both `db` and `backend` services.
+  - Make sure `POSTGRES_HOST` is set to `db` (the service name).
+  - Wait a few seconds and restart the backend (`docker compose restart backend`)—the database may not be ready yet.
+  - Check for typos in environment variable names.
+
+---
+
+## 3. Database Data Not Persisting
+
+- **Symptoms:**  
+  Data disappears after restarting containers.
+- **Solutions:**  
+  - Ensure you are using a persistent volume:
+    ```yaml
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  backend:
-    build: ./backend
-    environment:
-      POSTGRES_DB: examplechange #Must match database enviroments
-      POSTGRES_USER: examplechange #Must match database enviroments
-      POSTGRES_PASSWORD: examplechange #Must match database enviroments
-      POSTGRES_HOST: db
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "5173:5173"
-    depends_on:
-      - backend
-
-volumes:
-  postgres_data:
-```
+    ```
+  - If using a host directory, make sure the directory exists and is writable.
 
 ---
 
-## 3. Build and Run with Docker Compose
+## 4. Frontend Not Loading or Showing Errors
 
-### Install Docker and Docker Compose (if not already installed)
-
-```sh
-# Install Docker
-sudo apt update
-sudo apt install -y ca-certificates curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# Add your user to the docker group (optional, for running docker without sudo)
-sudo usermod -aG docker $USER
-# You may need to log out and back in for group changes to take effect
-
-# Verify Docker is installed
-docker --version
-docker compose version
-```
-
-### Build and Run the Project
-
-```sh
-docker compose up --build
-```
-
-- **Frontend:** [http://localhost:5173](http://localhost:5173)
-- **Backend API:** [http://localhost:8000](http://localhost:8000)
-- **PostgreSQL:** localhost:5432
-
-To stop the services:
-
-```sh
-docker compose down
-```
+- **Symptoms:**  
+  Blank page, 404 errors, or "Cannot connect to backend" messages.
+- **Solutions:**  
+  - Make sure the frontend is running (`docker compose ps`).
+  - Check the browser console for errors.
+  - Ensure the backend is running and accessible at the expected URL (`http://localhost:8000`).
+  - If you changed ports, update API URLs in the frontend code or environment.
 
 ---
 
-## 4. CSV Template for Tenant / Domains List
+## 5. IP Enrichment Not Working or Rate Limited
 
-- Download the template from the UI or use this format:
-
-```csv
-tenant_name,domain
-"Example Tenant, Inc.",example.com
-```
-
-- If a tenant name contains a comma, wrap it in double quotes.
+- **Symptoms:**  
+  No enrichment data, errors from ip-api.com, or "rate limit exceeded" messages.
+- **Solutions:**  
+  - The free tier of [ip-api.com](http://ip-api.com/) allows 45 requests per minute per IP.
+  - If you need more, set the `IP_API_URL` environment variable in the backend service to use a different provider or a paid plan.
+  - Check backend logs for error messages from the enrichment API.
 
 ---
 
-## Troubleshooting
+## 6. Docker Compose Version Issues
 
-- If the backend cannot connect to the database, double-check that the credentials and host match in both `db` and `backend` services in `docker-compose.yml`.
-- If you change ports, update your URLs accordingly.
-- For advanced Docker Compose usage, see the [official documentation](https://docs.docker.com/compose/).
+- **Symptoms:**  
+  Errors like "unsupported Compose file version" or unknown keys.
+- **Solutions:**  
+  - Make sure you have Docker Compose v2 or later:  
+    `docker compose version`
+  - Upgrade Docker and Docker Compose if needed.
 
 ---
 
-## Questions?
+## 7. File Permission Issues
 
-See the main [README.md](../README.md) or open an issue for more help.
+- **Symptoms:**  
+  Errors about permission denied, especially with volumes or host directories.
+- **Solutions:**  
+  - Ensure your user has permission to read/write the project directory.
+  - If using a host directory for Postgres data, make sure it is owned by your user or adjust permissions.
+
+---
+
+## 8. Port Already in Use
+
+- **Symptoms:**  
+  Errors like "port is already allocated".
+- **Solutions:**  
+  - Stop other services using the same port.
+  - Change the port mapping in `docker-compose.yml`.
+
+---
+
+## 9. General Debugging Tips
+
+- Use `docker compose ps` to see running containers.
+- Use `docker compose logs <service>` to view logs.
+- Use `docker compose down -v` to remove containers and volumes (warning: this deletes data).
+- Restart individual services with `docker compose restart <service>`.
+
+---
+
+## Still Stuck?
+
+- Check the [README.md](../README.md) and [docker-compose.md](./docker-compose.md) for more info.
+- Open an issue on GitHub with your error messages and setup details.

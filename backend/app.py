@@ -10,31 +10,36 @@ app = Flask(__name__)
 CORS(app)
 
 def get_db():
+    """Get a database connection for the current request context."""
     if 'db' not in g:
         g.db = psycopg2.connect(
             dbname=os.environ.get("POSTGRES_DB", "avanan"),
             user=os.environ.get("POSTGRES_USER", "avanan"),
             password=os.environ.get("POSTGRES_PASSWORD", "avanan"),
-            host="localhost"
+            host=os.environ.get("POSTGRES_HOST", "localhost")
         )
     return g.db
 
 @app.teardown_appcontext
 def close_db(error):
+    """Close the database connection at the end of the request."""
     db = g.pop('db', None)
     if db is not None:
         db.close()
 
 def fetch_all_dicts(cur):
+    """Return all rows from a cursor as a list of dicts."""
     rows = cur.fetchall()
     columns = [desc[0] for desc in cur.description]
     return [dict(zip(columns, row)) for row in rows]
 
 def get_domain_from_email(email):
+    """Extract the domain from an email address."""
     match = re.search(r'@([A-Za-z0-9.-]+)$', email)
     return match.group(1).lower() if match else None
 
 def get_tenant_name_for_domain(conn, domain):
+    """Look up the tenant name for a given domain, or return the domain if not found."""
     with conn.cursor() as cur:
         cur.execute("SELECT tenant_name FROM tenant_domains WHERE domain = %s", (domain,))
         row = cur.fetchone()
@@ -42,10 +47,13 @@ def get_tenant_name_for_domain(conn, domain):
 
 @app.route("/api/new-entry", methods=["POST"])
 def new_entry():
+    """Add a new Avanan alert entry with IP enrichment."""
     data = request.json
 
     def enrich_ip(ip):
-        r = requests.get(f"http://ip-api.com/json/{ip}")
+        # Uses IP_API_URL env variable to allow for custom IP enrichment providers
+        ip_api_url = os.environ.get("IP_API_URL", "http://ip-api.com/json/")
+        r = requests.get(f"{ip_api_url}{ip}")
         res = r.json()
         return res.get("city"), res.get("regionName"), res.get("country"), res.get("isp"), (res.get("lat"), res.get("lon"))
 

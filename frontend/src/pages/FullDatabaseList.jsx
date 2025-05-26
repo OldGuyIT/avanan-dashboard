@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+// Table page sizes and column definitions
 const PAGE_SIZES = [25, 50, 100];
 const COLUMNS = [
   { key: "timestamp", label: <>Date/Time</> },
@@ -17,6 +18,7 @@ const COLUMNS = [
   { key: "ip2_isp", label: <>ISP<br />2</> },
 ];
 
+// Helper to get column label as string for CSV export
 function getColLabel(col) {
   // Handles plain strings, React fragments, and elements with children
   if (typeof col.label === "string") return col.label;
@@ -40,21 +42,25 @@ export default function FullDatabaseList() {
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(0);
 
+  // Fetch all entries from backend on mount
   useEffect(() => {
     fetch("/api/all-entries")
       .then((res) => res.json())
       .then(setEntries);
   }, []);
 
+  // Sort entries by selected column and direction
   const sorted = [...entries].sort((a, b) => {
     if (a[sortKey] < b[sortKey]) return sortAsc ? -1 : 1;
     if (a[sortKey] > b[sortKey]) return sortAsc ? 1 : -1;
     return 0;
   });
 
+  // Pagination logic
   const pageCount = Math.ceil(sorted.length / pageSize);
   const paged = sorted.slice(page * pageSize, (page + 1) * pageSize);
 
+  // Handle sorting when a column header is clicked
   function handleSort(key) {
     if (sortKey === key) setSortAsc((asc) => !asc);
     else {
@@ -63,6 +69,7 @@ export default function FullDatabaseList() {
     }
   }
 
+  // Download all entries as CSV
   async function handleDownloadCSV() {
     const res = await fetch("/api/all-entries");
     const data = await res.json();
@@ -83,6 +90,7 @@ export default function FullDatabaseList() {
     URL.revokeObjectURL(url);
   }
 
+  // Remove an entry by ID
   async function handleRemove(id) {
     if (!window.confirm("Are you sure you want to remove this entry?")) return;
     try {
@@ -95,6 +103,7 @@ export default function FullDatabaseList() {
 
   return (
     <div style={{ width: "100%" }}>
+      {/* Controls: CSV download, page size, and page info */}
       <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "1rem" }}>
         <button
           onClick={handleDownloadCSV}
@@ -121,6 +130,7 @@ export default function FullDatabaseList() {
           Page {page + 1} of {pageCount}
         </span>
       </div>
+      {/* Table of all entries */}
       <div style={{ overflowX: "auto" }}>
         <table
           style={{
@@ -206,6 +216,7 @@ export default function FullDatabaseList() {
           </tbody>
         </table>
       </div>
+      {/* Pagination controls */}
       <div style={{ marginTop: "1rem", display: "flex", gap: "1rem", alignItems: "center" }}>
         <button disabled={page === 0} onClick={() => setPage(page - 1)}>
           Back
