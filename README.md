@@ -40,7 +40,7 @@ avanan-dashboard/
 ### 1. Clone the repository
 
 ```sh
-git clone https://github.com/yourusername/avanan-dashboard.git
+git clone https://github.com/oldguyit/avanan-dashboard.git
 cd avanan-dashboard
 ```
 
