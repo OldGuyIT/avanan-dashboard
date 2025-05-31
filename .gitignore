@@ -27,3 +27,35 @@ __pycache__/
 *.pyc
 node_modules/
 .env
+
+# Test output and test files
+coverage/
+__tests__/
+*.test.js
+*.spec.js
+
+# Vite
+.vite/
+
+# Tailwind/PostCSS config (optional, if you don't want to track them)
+tailwind.config.js
+postcss.config.js
+
+# Flask/Python
+*.pyo
+*.pyd
+instance/
+.pytest_cache/
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# OS files
+Thumbs.db
+ehthumbs.db
+
+# Database
+*.sqlite3
+*.db
+pgdata/
