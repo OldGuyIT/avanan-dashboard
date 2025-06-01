@@ -5,8 +5,9 @@ Includes CSV upload/download for tenant/domain management, IP enrichment, and a 
 
 ---
 
-**Note:**  
-Hello! I wanted to share a bit about this project and my motivation for building it.  
+**Notes:**  
+Hello! I wanted to share a bit about this project and my motivation for building it.
+
 My experience with web development started back in the old MySpace days with basic HTML/CSS, and this is my first full application/web page.  
   
 In our environment, we receive 20–30 Avanan suspicious login alerts with medium or low severity every day. I needed a way to review all these alerts efficiently and spot patterns in user logins and IP addresses.  
