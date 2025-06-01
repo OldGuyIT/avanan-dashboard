@@ -3,6 +3,20 @@
 A full-stack dashboard for [Avanan](https://www.avanan.com/) alerts, built with [React (Vite)](https://vitejs.dev/), [Flask](https://flask.palletsprojects.com/), and [PostgreSQL](https://www.postgresql.org/).  
 Includes CSV upload/download for tenant/domain management, IP enrichment, and a modern UI.
 
+---
+
+> **Note:**  
+> Hello! I wanted to share a bit about this project and my motivation for building it.  
+> My experience with web development started back in the old MySpace days with basic HTML/CSS, and this is my first full application/web page.  
+>  
+> In our environment, we receive 20–30 Avanan suspicious login alerts with medium or low severity every day. I needed a way to review all these alerts efficiently and spot patterns in user logins and IP addresses.  
+>  
+> Before this dashboard, it was difficult to build reliable allow-lists for each tenant. Now, with this project, I can visualize login activity, identify trends, and make informed decisions about allow-lists for each tenant in Avanan.
+>
+> I hope this tool can help others in similar situations, and I welcome any feedback or contributions!
+
+---
+
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **For a detailed setup and troubleshooting guide, see [docs/full-guide.md](docs/full-guide.md).**
@@ -145,4 +159,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For questions or support, open an issue or contact [your email/contact info].
+For questions or support, open an issue and I will get to it as soon as I can.

@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 **Reason:**  
 To support companies with multiple users who need to input requests, the dashboard will add user authentication and optional two-factor authentication (2FA). This will allow secure, individualized access for each team member.
 
+- Theme based css using DaisyUI or Tailwind
+
+**Reason:**
+To support companies who would like to theme the application based on their company colors.
 ---
 
 ## 1.0.0 — 2025-05-26
