@@ -1,9 +1,13 @@
-// TenantDomainList.jsx
-// Page that displays the Tenant/Domain List table.
-
-import React from "react";
+import { useEffect } from "react";
 import TenantDomainListTable from "../components/TenantDomainListTable";
 
 export default function TenantDomainList() {
-  return <TenantDomainListTable />;
+  useEffect(() => {
+    document.title = "Tenant / Domain List";
+  }, []);
+  return (
+    <div className="main-container">
+      <TenantDomainListTable />
+    </div>
+  );
 }

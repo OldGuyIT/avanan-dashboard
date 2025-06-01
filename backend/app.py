@@ -204,3 +204,27 @@ def entry_by_id(entry_id):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
+
+@app.route("/api/update-tenants", methods=["POST"])
+def update_all_tenants():
+    """Update all avanan_alerts entries with the correct tenant name based on tenant_domains."""
+    try:
+        conn = get_db()
+        with conn.cursor() as cur:
+            # Fetch all entries with their id and user_email
+            cur.execute("SELECT id, user_email FROM avanan_alerts")
+            entries = cur.fetchall()
+            for entry_id, email in entries:
+                domain = get_domain_from_email(email or "")
+                if not domain:
+                    continue
+                tenant_name = get_tenant_name_for_domain(conn, domain)
+                cur.execute(
+                    "UPDATE avanan_alerts SET tenant = %s WHERE id = %s",
+                    (tenant_name, entry_id)
+                )
+            conn.commit()
+        return jsonify({"status": "success", "updated": len(entries)})
+    except Exception as e:
+        app.logger.error(f"Failed to update tenants: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500

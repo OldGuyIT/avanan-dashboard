@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 export default function TenantDomainLists() {
   return (
     <div>
-      <h2 style={{ color: "#fff", marginBottom: "1rem" }}>Tenant / Domain List</h2>
       <TenantDomainListTable />
     </div>
   );
@@ -14,28 +13,31 @@ function TenantDomainListTable() {
   const [form, setForm] = useState({ domain: "", tenant_name: "" });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [updateStatus, setUpdateStatus] = useState(null);
 
   // Fetch domains on mount
   useEffect(() => {
+    document.title = "Tenant / Domain List";
     fetch("/api/tenant-domains")
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch domains");
         return res.json();
       })
       .then(setDomains)
-      .catch(() => setError("Could not load tenant/domain list."));
+      .catch(() => setError("Network error: Could not load tenant/domain list."));
   }, []);
 
   // Handle form input changes
-  const handleChange = e => {
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   // Add or update a domain
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setUpdateStatus(null);
     try {
       const res = await fetch("/api/tenant-domains", {
         method: "POST",
@@ -44,20 +46,21 @@ function TenantDomainListTable() {
       });
       if (!res.ok) throw new Error("Failed to add/update domain");
       setForm({ domain: "", tenant_name: "" });
-      setSuccess("Domain added/updated!");
+      setSuccess("Tenant list updated successfully!");
       // Refresh list
       const listRes = await fetch("/api/tenant-domains");
       if (!listRes.ok) throw new Error("Failed to refresh list");
       setDomains(await listRes.json());
-    } catch {
-      setError("Failed to add/update domain.");
+    } catch (err) {
+      setError("Network error: Unable to add/update tenant/domain.");
     }
   };
 
   // Delete a domain
-  const handleDelete = async domain => {
+  const handleDelete = async (domain) => {
     setError(null);
     setSuccess(null);
+    setUpdateStatus(null);
     try {
       const res = await fetch("/api/tenant-domains", {
         method: "DELETE",
@@ -65,10 +68,10 @@ function TenantDomainListTable() {
         body: JSON.stringify({ domain }),
       });
       if (!res.ok) throw new Error("Failed to delete domain");
-      setDomains(domains.filter(d => d.domain !== domain));
-      setSuccess("Domain deleted!");
-    } catch {
-      setError("Failed to delete domain.");
+      setDomains(domains.filter((d) => d.domain !== domain));
+      setSuccess("Tenant/domain removed successfully!");
+    } catch (err) {
+      setError(`Unable to delete domain: ${err.message || "Network error"}`);
     }
   };
 
@@ -76,29 +79,36 @@ function TenantDomainListTable() {
   const handleCSVUpload = async (e) => {
     setError(null);
     setSuccess(null);
+    setUpdateStatus(null);
     const file = e.target.files[0];
     if (!file) return;
     try {
       const text = await file.text();
       const rows = text.trim().split("\n").slice(1); // skip header
-      for (const row of rows) {
+      for (const [i, row] of rows.entries()) {
         const [tenant_name, domain] = row.split(",");
-        if (tenant_name && domain) {
-          const res = await fetch("/api/tenant-domains", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tenant_name: tenant_name.trim(), domain: domain.trim() }),
-          });
-          if (!res.ok) throw new Error("Failed to upload CSV row");
+        if (!tenant_name || !domain) {
+          throw new Error(
+            `Error with CSV file upload: Bad field or comma placement on line ${i + 2}`
+          );
         }
+        const res = await fetch("/api/tenant-domains", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tenant_name: tenant_name.trim(),
+            domain: domain.trim(),
+          }),
+        });
+        if (!res.ok) throw new Error("Failed to upload CSV row");
       }
       // Refresh list
       const listRes = await fetch("/api/tenant-domains");
       if (!listRes.ok) throw new Error("Failed to refresh list");
       setDomains(await listRes.json());
-      setSuccess("Upload complete!");
-    } catch {
-      setError("Failed to upload CSV.");
+      setSuccess("CSV has been uploaded successfully!");
+    } catch (err) {
+      setError(err.message || "Network error: Failed to upload CSV.");
     }
   };
 
@@ -116,57 +126,85 @@ function TenantDomainListTable() {
     URL.revokeObjectURL(url);
   };
 
+  // Handle tenant/domain update: Calls the backend to update all tenants/domains
+  const handleUpdateTenants = async () => {
+    setUpdateStatus(null);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch("/api/update-tenants", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setUpdateStatus(`✅ All tenants updated successfully! (${data.updated} entries)`);
+      } else {
+        setUpdateStatus(`❌ Error updating tenants: ${data.message}`);
+      }
+    } catch (err) {
+      setUpdateStatus("❌ Network error while updating tenants.");
+    }
+  };
+
   return (
     <div>
-      {error && <div style={{ color: "red", marginBottom: "1em" }}>{error}</div>}
-      {success && <div style={{ color: "green", marginBottom: "1em" }}>{success}</div>}
-      {/* Add/Update Form */}
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          marginBottom: "1em",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.1rem",
-        }}
-      >
-        <input
-          name="tenant_name"
-          value={form.tenant_name}
-          onChange={handleChange}
-          placeholder="Tenant Name"
-          required
-        />
-        <input
-          name="domain"
-          value={form.domain}
-          onChange={handleChange}
-          placeholder="Domain"
-          required
-        />
-        <button type="submit">Add/Update</button>
-      </form>
-
-      {/* CSV Template Download and Upload */}
-      <div style={{ marginBottom: "1em", display: "flex", alignItems: "center", gap: "1rem" }}>
-        <button
-          onClick={handleDownloadTemplate}
+      {/* Center only the Add/Update Form */}
+      <div className="entry-form-center">
+        {/* Add/Update Form */}
+        <form
+          onSubmit={handleSubmit}
           style={{
-            background: "#064376",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            padding: "0.5rem 1rem",
-            cursor: "pointer",
-            fontWeight: "bold"
+            gap: "1rem",
           }}
         >
+          <input
+            name="tenant_name"
+            value={form.tenant_name}
+            onChange={handleChange}
+            placeholder="Tenant Name"
+            required
+            style={{ color: "#fff", background: "#222", border: "1px solid #444", borderRadius: "4px", padding: ".5em" }}
+          />
+          <input
+            name="domain"
+            value={form.domain}
+            onChange={handleChange}
+            placeholder="Domain"
+            required
+            style={{ color: "#fff", background: "#222", border: "1px solid #444", borderRadius: "4px", padding: ".5em" }}
+          />
+          <button type="submit" className="btn">Add/Update</button>
+        </form>
+        {/* Centered feedback messages below the form */}
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+        {updateStatus && (
+          <div className={updateStatus.startsWith("✅") ? "success-message" : "error-message"}>
+            {updateStatus}
+          </div>
+        )}
+      </div>
+
+      {/* CSV Template Download and Upload */}
+      <div
+        style={{
+          alignItems: "center",
+          gap: "1rem"
+        }}
+      >
+        <button onClick={handleUpdateTenants} className="btn">
+          Update All Tenants
+        </button>
+        <button onClick={handleDownloadTemplate} className="btn">
           Download CSV Template
         </button>
+        <br></br>
         <input
           type="file"
           accept=".csv"
           onChange={handleCSVUpload}
+          style={{
+            color: "#fff",
+            padding: "0.5em"
+          }}
         />
       </div>
 
@@ -186,14 +224,7 @@ function TenantDomainListTable() {
               <td>{d.domain}</td>
               <td>
                 <button
-                  style={{
-                    background: "#c00",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "0.25rem 0.5rem",
-                    cursor: "pointer",
-                  }}
+                  className="btn btn-danger"
                   onClick={() => handleDelete(d.domain)}
                 >
                   Remove

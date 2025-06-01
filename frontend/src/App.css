@@ -16,7 +16,7 @@ html, body {
 /* ===== Layout wrapper (used in SidebarLayout.jsx) ===== */
 .app-layout {
   display: flex;
-  min-height: 100vh;
+  min-height: 90vh;
   background: #242424;
 }
 
@@ -28,7 +28,7 @@ html, body {
   align-items: center;
   border: 4px solid #064376;
   border-radius: 3rem;
-  margin: 1rem 0 1rem 3rem;
+  margin: 1rem 0 1rem 1rem;
   padding: 2rem 0;
   background: #242424;
 }
@@ -91,27 +91,8 @@ html, body {
 
 /* ===== Main container for page content (used in all main pages) ===== */
 .main-container {
-  margin: 0 auto;
-  display: flex;
-  color: #ffffff;
-  flex-direction: column;
-  align-items: center;
-  border-radius: 1rem;
-  padding: 0rem;
-  background: #242424;
   width: 100%;
-  max-width: 96rem;
-  min-width: 300px;
-}
-
-/* ===== Dashboard map container (used in Dashboard.jsx) ===== */
-.dashboard-map {
-  width: 1100px;
-  height: 550px;
-  margin-top: 0rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin: 0 auto;
 }
 
 /* ===== Sub-container for sections like last entry, tables, etc. (used in various pages) ===== */
@@ -136,6 +117,12 @@ html, body {
   border-collapse: collapse;
   background: #222;
   color: #eee;
+  table-layout: fixed; /* If you want some tables to auto-size, add .auto-table class */
+}
+
+/* Optional: For tables that should auto-size columns, add this class in JSX */
+.auto-table {
+  table-layout: auto !important;
 }
 
 /* ===== Custom table header and cell styles ===== */
@@ -175,7 +162,204 @@ html, body {
   border-radius: 2rem;
   overflow: hidden;
   box-sizing: border-box;
-  width: 1100px;   /* Set your desired width */
-  height: 410px;   /* Set your desired height */
-  margin: 0 auto;  /* Center horizontally if you want */
+  width: 100%;
+  max-width: 1200px;
+  height: 500px;
+}
+
+/* ===== Custom button styles (used in various pages) ===== */
+.btn {
+  background: #064376;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 1em;
+  margin-right: 0.25em;
+  margin-left: 0.25em;
+}
+
+.btn:last-child {
+  margin-right: 0;        /* No extra gap after the last button */
+}
+
+.btn-danger {
+  background: #c00;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
+/* ===== Dashboard layout ===== */
+.dashboard-flex {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  width: 100%;
+}
+.dashboard-main {
+  flex: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.dashboard-sidebar {
+  flex: 1;
+  min-width: 250px;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Section titles */
+.section-title {
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  gap: 1.5rem;
+  width: 100%;
+  align-items: center;
+}
+
+/* Error message */
+.error-message {
+  color: #ff4444;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+/* Table controls */
+.table-controls {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.tenant-filter-input {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.table-page-info {
+  margin-left: auto;
+}
+
+/* Table scroll wrapper */
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* No entries message */
+.no-entries-message {
+  color: #ccc;
+  margin-top: 1rem;
+}
+
+/* Pagination controls */
+.table-pagination {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Sortable column */
+.sortable {
+  cursor: pointer;
+}
+
+/* Color dots for map lines and table */
+.color-dot-cell {
+  border-right: none;
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  padding: 0;
+}
+.color-dot {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #222;
+  margin-right: 0.5em;
+}
+.color-dot-0 { background: #FF0000; }
+.color-dot-1 { background: #FF7F00; }
+.color-dot-2 { background: #FFFF00; }
+.color-dot-3 { background: #00FF00; }
+.color-dot-4 { background: #0000FF; }
+.color-dot-5 { background: #4B0082; }
+.color-dot-6 { background: #8B00FF; }
+
+.pie-table {
+  margin-left: 1rem;
+  width: auto;
+  min-width: 120px;
+  max-width: 260px;
+}
+.pie-table-row td {
+  background: inherit !important;
+  color: inherit !important;
+}
+
+.entry-form-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.success-message {
+  color: #1db954;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.tenantentry-form-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+/* Add to App.css */
+.form-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto 2em auto;
+}
+
+.form-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.form-inline input,
+.form-inline button {
+  height: 2.5em;
+  font-size: 1em;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+
+.form-inline input {
+  min-width: 180px;
+}
+
+.form-inline button {
+  min-width: 120px;
 }
