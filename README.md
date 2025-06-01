@@ -33,7 +33,12 @@ avanan-dashboard/
 │   ├── Dockerfile
 ├── docker-compose.yml
 ├── README.md
+├── docs/
+│   ├── full-guide.md
+│   ├── sample-entry.md
 ```
+
+---
 
 ## Quick Start
 
@@ -60,20 +65,6 @@ services:
 If you change these, **make sure to update the corresponding environment variables in the `backend` service as well** so they match.  
 The backend reads these values from environment variables at runtime—no code changes are needed.
 
-For more advanced Docker Compose usage, see [docs/docker-compose.md](docs/docker-compose.md) (if available).
-
----
-
-### 3. Build and Run with Docker Compose
-
-```sh
-docker-compose up --build
-```
-
-- **Frontend:** [http://localhost:5173](http://localhost:5173)
-- **Backend API:** [http://localhost:8000](http://localhost:8000)
-- **PostgreSQL:** localhost:5432
-
 ---
 
 ### 3. Configure Environment Variables
@@ -85,6 +76,18 @@ cp .env.example .env
 ```
 
 Edit `.env` to match your setup.
+
+---
+
+### 4. Build and Run with Docker Compose
+
+```sh
+docker compose up --build
+```
+
+- **Frontend:** [http://localhost:5173](http://localhost:5173)
+- **Backend API:** [http://localhost:8000](http://localhost:8000)
+- **PostgreSQL:** localhost:5432
 
 ---
 
@@ -103,9 +106,16 @@ tenant_name,domain
 
 ---
 
+## Sample Data for Dashboard Testing
+
+To test dashboard features, including the "Top 5 Users" and "Top 5 Tenants" sections, use the sample event entries in [docs/sample-entry.md](docs/sample-entry.md).
+
+---
+
 ## Documentation
 
 - [Full Setup & Troubleshooting Guide](docs/full-guide.md)
+- [Sample Event Entries for Dashboard Testing](docs/sample-entry.md)
 - [Docker Compose Usage](docs/docker-compose.md) *(if available)*
 
 ---

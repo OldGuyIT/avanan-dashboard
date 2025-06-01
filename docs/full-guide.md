@@ -6,10 +6,6 @@ This guide provides step-by-step instructions for setting up the Avanan Dashboar
 
 ## 1. Clone the Repository
 
-### For Debian/Ubuntu
-
-Open your terminal and run:
-
 ```sh
 # Install git if not already installed
 sudo apt update
@@ -25,7 +21,7 @@ cd avanan-dashboard
 ## 2. Configure Database Credentials (Optional)
 
 You can change the PostgreSQL username, password, and database name in `docker-compose.yml`.
-Currently the `docker-compose.yml` uses avanan for POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.
+Currently the `docker-compose.yml` uses `avanan` for POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.
 If you change these values, make sure to update the same variables under the `backend` service in `docker-compose.yml` so they match.
 No code changes are needed—just update the environment variables in `docker-compose.yml`.
 
@@ -47,9 +43,9 @@ services:
   backend:
     build: ./backend
     environment:
-      POSTGRES_DB: examplechange #Must match database enviroments
-      POSTGRES_USER: examplechange #Must match database enviroments
-      POSTGRES_PASSWORD: examplechange #Must match database enviroments
+      POSTGRES_DB: examplechange # Must match database enviroments
+      POSTGRES_USER: examplechange # Must match database enviroments
+      POSTGRES_PASSWORD: examplechange # Must match database enviroments
       POSTGRES_HOST: db
     ports:
       - "8000:8000"
@@ -136,6 +132,13 @@ tenant_name,domain
 ```
 
 - If a tenant name contains a comma, wrap it in double quotes.
+
+---
+
+## 5. Sample Event Entries for Dashboard Testing
+
+To test dashboard features and see how the UI displays top users/tenants, use the sample event entries in [docs/sample-entry.md](sample-entry.md).
+
 
 ---
 
