@@ -11,14 +11,6 @@ All notable changes to this project will be documented in this file.
 
 *API*
 - Add API change to docker-compose for users to input their own API
-
-*Display*
-- New Entry Form:
-  - Move Map and last entries
-  - Highlight the entry that was inputed in table
-- Dashboard:
-  - Top 5 Tenants, Top 5 Entries, Top 5 IP Addresses, Top 5 ????
-- Adjust sidebar and shrink
   
 ---
 

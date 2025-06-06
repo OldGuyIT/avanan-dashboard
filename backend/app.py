@@ -80,6 +80,11 @@ def new_entry():
         tenant_name = get_tenant_name_for_domain(conn, domain) if domain else domain
 
         with conn.cursor() as cur:
+            # Check for duplicate
+            cur.execute("SELECT 1 FROM avanan_alerts WHERE timestamp = %s AND user_email = %s", (data['timestamp'], email))
+            if cur.fetchone():
+                return jsonify({"status": "error", "message": "Duplicate entry"}), 409
+
             cur.execute("""
                 INSERT INTO avanan_alerts (
                     timestamp, tenant, user_email,

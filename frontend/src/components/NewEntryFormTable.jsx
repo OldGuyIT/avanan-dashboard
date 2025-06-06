@@ -26,29 +26,12 @@ function parseEntry(text) {
   };
 }
 
-export default function NewEntryFormTable() {
+export default function NewEntryFormTable({ onEntrySaved }) {
   const [rawText, setRawText] = useState("");
   const [message, setMessage] = useState(null);
-  const [lastEntry, setLastEntry] = useState(null);
   const [error, setError] = useState(null);
 
-  // Helper to poll for enrichment after submitting a new entry
-  async function fetchEnrichedEntry(id, maxAttempts = 10, delayMs = 1000) {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const res = await fetch(`/api/entry/${id}`);
-      if (res.ok) {
-        const entry = await res.json();
-        // Check if enrichment fields are present (customize as needed)
-        if (entry.ip1_country || entry.ip1_geo) {
-          return entry;
-        }
-      }
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    }
-    return null;
-  }
-
-  // Handle form submission: parse, send to backend, and poll for enrichment
+  // Handle form submission: parse and send to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -65,83 +48,35 @@ export default function NewEntryFormTable() {
       if (res.ok) {
         setMessage("✅ Entry saved successfully!");
         setRawText("");
-        const createdEntry = await res.json();
-        if (createdEntry && createdEntry.id) {
-          // Poll for enrichment
-          const enriched = await fetchEnrichedEntry(createdEntry.id);
-          setLastEntry(enriched || createdEntry);
-        } else {
-          setLastEntry(null);
-        }
+        if (onEntrySaved) onEntrySaved(parsed);
+      } else if (res.status === 409) {
+        setError("❌ Failed to save entry. Reason: Duplicate.");
       } else {
         const errData = await res.json();
         setError(errData.message || "❌ Failed to save entry.");
       }
     } catch (err) {
-      setError("❌ Failed to save entry (network error).");
+      setError("❌ Failed to save entry. Reason: (network error).");
     }
   };
 
   return (
     <div>
       <div className="entry-form-center">
-      <form onSubmit={handleSubmit}>
-        <textarea
-          value={rawText}
-          onChange={(e) => setRawText(e.target.value)}
-          rows={6}
-          cols={60}
-          placeholder="Paste Avanan alert text here..."
-        />
-        <br />
-        <button type="submit">Submit Entry</button>
-      {message && <div style={{ color: "green" }}>{message}</div>}
-      {error && <div style={{ color: "red" }}>{error}</div>}
-      </form>
-    </div>
-      {lastEntry && (
-  <div className="sub-container" style={{ marginTop: "2em" }}>
-    <h3>Last Entry</h3>
-    <div style={{ overflowX: "auto", marginTop: "1.5rem" }}>
-      <table className="custom-table auto-table">
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Tenant</th>
-            <th>User Email</th>
-            <th>IP1</th>
-            <th>IP1 City</th>
-            <th>IP1 State</th>
-            <th>IP1 Country</th>
-            <th>IP1 ISP</th>
-            <th>IP2</th>
-            <th>IP2 City</th>
-            <th>IP2 State</th>
-            <th>IP2 Country</th>
-            <th>IP2 ISP</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{lastEntry.timestamp}</td>
-            <td>{lastEntry.tenant}</td>
-            <td>{lastEntry.user_email || lastEntry.email}</td>
-            <td>{lastEntry.ip1}</td>
-            <td>{lastEntry.ip1_city}</td>
-            <td>{lastEntry.ip1_state}</td>
-            <td>{lastEntry.ip1_country}</td>
-            <td>{lastEntry.ip1_isp}</td>
-            <td>{lastEntry.ip2}</td>
-            <td>{lastEntry.ip2_city}</td>
-            <td>{lastEntry.ip2_state}</td>
-            <td>{lastEntry.ip2_country}</td>
-            <td>{lastEntry.ip2_isp}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
+        <form onSubmit={handleSubmit}>
+          <textarea
+            value={rawText}
+            onChange={(e) => setRawText(e.target.value)}
+            rows={6}
+            cols={60}
+            placeholder="Paste Avanan alert text here..."
+          />
+          <br />
+          <button type="submit">Submit Entry</button>
+          {message && <div style={{ color: "green" }}>{message}</div>}
+          {error && <div style={{ color: "red" }}>{error}</div>}
+        </form>
+      </div>
     </div>
   );
 }

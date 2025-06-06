@@ -1,7 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import React from "react";
-import MarkerClusterGroup from "react-leaflet-markercluster";
 import "leaflet/dist/leaflet.css";
 
 // Rainbow colors for lines
@@ -44,6 +43,7 @@ const whiteCircleIcon = new L.DivIcon({
 // }
 
 export default function DashboardMapView({ points }) {
+  // Just plot the points, no clustering logic
   // Sort newest to oldest by timestamp
   const sortedPoints = [...points].sort((a, b) =>
     b.timestamp && a.timestamp
@@ -99,68 +99,66 @@ export default function DashboardMapView({ points }) {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
         />
-        <MarkerClusterGroup>
-          {lastPoints.map((p, i) => {
-            const ip1Coords = parseGeo(p.ip1_geo);
-            const ip2Coords = parseGeo(p.ip2_geo);
-            return (
-              <React.Fragment key={i}>
-                {ip1Coords && (
-                  <Marker position={ip1Coords} icon={blackCircleIcon}>
-                    <Popup>
+        {lastPoints.map((p, i) => {
+          const ip1Coords = parseGeo(p.ip1_geo);
+          const ip2Coords = parseGeo(p.ip2_geo);
+          return (
+            <React.Fragment key={i}>
+              {ip1Coords && (
+                <Marker position={ip1Coords} icon={blackCircleIcon}>
+                  <Popup>
+                    <div>
                       <div>
-                        <div>
-                          <b>User:</b> {p.user_email || p.email}
-                        </div>
-                        <div>
-                          <b>Tenant:</b> {p.tenant}
-                        </div>
-                        <div>
-                          <b>Timestamp:</b> {p.timestamp}
-                        </div>
-                        <div>
-                          <b>IP1:</b> {p.ip1}
-                        </div>
-                        <div>
-                          <b>Country:</b> {p.ip1_country}
-                        </div>
+                        <b>User:</b> {p.user_email || p.email}
                       </div>
-                    </Popup>
-                  </Marker>
-                )}
-                {ip2Coords && (
-                  <Marker position={ip2Coords} icon={whiteCircleIcon}>
-                    <Popup>
                       <div>
-                        <div>
-                          <b>User:</b> {p.user_email || p.email}
-                        </div>
-                        <div>
-                          <b>Tenant:</b> {p.tenant}
-                        </div>
-                        <div>
-                          <b>Timestamp:</b> {p.timestamp}
-                        </div>
-                        <div>
-                          <b>IP2:</b> {p.ip2}
-                        </div>
-                        <div>
-                          <b>Country:</b> {p.ip2_country}
-                        </div>
+                        <b>Tenant:</b> {p.tenant}
                       </div>
-                    </Popup>
-                  </Marker>
-                )}
-                {ip1Coords && ip2Coords && (
-                  <Polyline
-                    positions={[ip1Coords, ip2Coords]}
-                    pathOptions={{ color: rainbowColors[i % rainbowColors.length], weight: 3, opacity: 0.85 }}
-                  />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </MarkerClusterGroup>
+                      <div>
+                        <b>Timestamp:</b> {p.timestamp}
+                      </div>
+                      <div>
+                        <b>IP1:</b> {p.ip1}
+                      </div>
+                      <div>
+                        <b>Country:</b> {p.ip1_country}
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+              {ip2Coords && (
+                <Marker position={ip2Coords} icon={whiteCircleIcon}>
+                  <Popup>
+                    <div>
+                      <div>
+                        <b>User:</b> {p.user_email || p.email}
+                      </div>
+                      <div>
+                        <b>Tenant:</b> {p.tenant}
+                      </div>
+                      <div>
+                        <b>Timestamp:</b> {p.timestamp}
+                      </div>
+                      <div>
+                        <b>IP2:</b> {p.ip2}
+                      </div>
+                      <div>
+                        <b>Country:</b> {p.ip2_country}
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+              {ip1Coords && ip2Coords && (
+                <Polyline
+                  positions={[ip1Coords, ip2Coords]}
+                  pathOptions={{ color: rainbowColors[i % rainbowColors.length], weight: 3, opacity: 0.85 }}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
         {/* Optionally enable FitBounds: <FitBounds points={lastPoints} /> */}
       </MapContainer>
     </div>

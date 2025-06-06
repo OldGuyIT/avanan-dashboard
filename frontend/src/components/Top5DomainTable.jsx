@@ -1,38 +1,38 @@
-import { PieChart, Pie, Cell, Legend } from "recharts";
+import { PieChart, Pie, Cell } from "recharts";
 
 const PIE_COLORS = [
   "#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28CFE",
   "#FF6699", "#FF4444", "#00B8D9", "#FFB347", "#B0E57C"
 ];
 
-export default function DashboardTop10TenantTable({ entries }) {
-  // Count tenants
-  const counts = {};
+function extractDomain(email) {
+  if (!email) return "";
+  const parts = email.split("@");
+  return parts.length === 2 ? parts[1].toLowerCase() : "";
+}
+
+export default function Top5DomainTable({ entries }) {
+  // Count domains
+  const domainCounts = {};
   entries.forEach(e => {
-    if (!e.tenant) return;
-    counts[e.tenant] = (counts[e.tenant] || 0) + 1;
+    const domain = extractDomain(e.user_email);
+    if (domain) {
+      domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+    }
   });
-  const topTenants = Object.entries(counts)
+
+  const topDomains = Object.entries(domainCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
-  // Prepare data for recharts
-  const pieData = topTenants.map(([tenant, count]) => ({
-    name: tenant,
+  const pieData = topDomains.map(([domain, count]) => ({
+    name: domain,
     value: count,
   }));
 
   return (
     <div className="table-scroll">
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "1rem",
-          justifyContent: "center"
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", justifyContent: "center" }}>
         <PieChart width={180} height={180}>
           <Pie
             data={pieData}
@@ -52,22 +52,21 @@ export default function DashboardTop10TenantTable({ entries }) {
         <table className="custom-table pie-table">
           <thead>
             <tr>
-              <th>Tenant</th>
+              <th>Domain</th>
               <th>Entries</th>
             </tr>
           </thead>
           <tbody>
-            {topTenants.map(([tenant, count], i) => (
+            {topDomains.map(([domain, count], i) => (
               <tr
                 key={i}
-                className="pie-table-row"
                 style={{
                   background: PIE_COLORS[i % PIE_COLORS.length],
                   color: "#111",
                   fontWeight: "bold"
                 }}
               >
-                <td>{tenant}</td>
+                <td>{domain}</td>
                 <td>{count}</td>
               </tr>
             ))}

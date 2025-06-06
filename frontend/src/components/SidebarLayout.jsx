@@ -25,8 +25,6 @@ export default function SidebarLayout() {
         </div>
       </nav>
       <div className="content-area">
-        <div className="page-title-card">
-        </div>
         <div className="main-container">
           <Outlet />
         </div>

@@ -5,33 +5,39 @@ const PIE_COLORS = [
   "#FF6699", "#FF4444", "#00B8D9", "#FFB347", "#B0E57C"
 ];
 
-export default function DashboardTop10UserTable({ entries }) {
-  const counts = {};
+export default function Top5IPTable({ entries }) {
+  // Map IP to { count, isp }
+  const ipStats = {};
   entries.forEach(e => {
-    const user = e.user_email || e.email;
-    if (!user) return;
-    counts[user] = (counts[user] || 0) + 1;
+    if (e.ip1) {
+      if (!ipStats[e.ip1]) {
+        ipStats[e.ip1] = { count: 0, isp: e.ip1_isp || "" };
+      }
+      ipStats[e.ip1].count += 1;
+      // Optionally update ISP if not set
+      if (!ipStats[e.ip1].isp && e.ip1_isp) ipStats[e.ip1].isp = e.ip1_isp;
+    }
+    if (e.ip2) {
+      if (!ipStats[e.ip2]) {
+        ipStats[e.ip2] = { count: 0, isp: e.ip2_isp || "" };
+      }
+      ipStats[e.ip2].count += 1;
+      if (!ipStats[e.ip2].isp && e.ip2_isp) ipStats[e.ip2].isp = e.ip2_isp;
+    }
   });
-  const topUsers = Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
+
+  const topIPs = Object.entries(ipStats)
+    .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 5);
 
-  const pieData = topUsers.map(([user, count]) => ({
-    name: user,
-    value: count,
+  const pieData = topIPs.map(([ip, stat]) => ({
+    name: ip,
+    value: stat.count,
   }));
 
   return (
     <div className="table-scroll">
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "1rem",
-          justifyContent: "center"
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", justifyContent: "center" }}>
         <PieChart width={180} height={180}>
           <Pie
             data={pieData}
@@ -51,12 +57,13 @@ export default function DashboardTop10UserTable({ entries }) {
         <table className="custom-table pie-table">
           <thead>
             <tr>
-              <th>User Email</th>
+              <th>IP Address</th>
+              <th>ISP</th>
               <th>Entries</th>
             </tr>
           </thead>
           <tbody>
-            {topUsers.map(([user, count], i) => (
+            {topIPs.map(([ip, stat], i) => (
               <tr
                 key={i}
                 style={{
@@ -65,8 +72,9 @@ export default function DashboardTop10UserTable({ entries }) {
                   fontWeight: "bold"
                 }}
               >
-                <td>{user}</td>
-                <td>{count}</td>
+                <td>{ip}</td>
+                <td>{stat.isp}</td>
+                <td>{stat.count}</td>
               </tr>
             ))}
           </tbody>
