@@ -4,6 +4,7 @@ import Top5UserTable from "../components/Top5UserTable";
 import Top5IPTable from "../components/Top5IPTable";
 import Top5DomainTable from "../components/Top5DomainTable";
 import Top5TenantIPTable from "../components/Top5TenantIPTable";
+import Top5UserIPTable from "../components/Top5UserIPTable";
 
 export default function Dashboard() {
   const [allEntries, setAllEntries] = useState([]);
@@ -47,6 +48,10 @@ export default function Dashboard() {
           <section>
             <h2 className="section-title">Top 5 Tenants by Most Frequent IP</h2>
             <Top5TenantIPTable entries={allEntries} />
+          </section>
+          <section>
+            <h2 className="section-title">Top 5 Users by Most Frequent IP</h2>
+            <Top5UserIPTable entries={allEntries} />
           </section>
         </div>
       </div>

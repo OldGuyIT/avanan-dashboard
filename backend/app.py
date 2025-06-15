@@ -6,6 +6,7 @@ from datetime import datetime
 from flask_cors import CORS
 import os
 import re
+import csv
 
 app = Flask(__name__)
 CORS(app)
@@ -124,27 +125,14 @@ def last_entries():
         app.logger.error(f"Failed to fetch last entries: {e}")
         return jsonify([]), 500
 
-@app.route("/api/last-entry", methods=["GET"])
-def last_entry():
-    try:
-        conn = get_db()
-        with conn.cursor() as cur:
-            cur.execute("SELECT * FROM avanan_alerts ORDER BY timestamp DESC LIMIT 1")
-            row = cur.fetchone()
-            if not row:
-                return jsonify({})
-            columns = [desc[0] for desc in cur.description]
-            return jsonify(dict(zip(columns, row)))
-    except Exception as e:
-        app.logger.error(f"Failed to fetch last entry: {e}")
-        return jsonify({}), 500
 
 @app.route("/api/all-entries", methods=["GET"])
 def all_entries():
     try:
         conn = get_db()
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM avanan_alerts ORDER BY timestamp DESC")
+            # Sort by entry_number DESC so newest is first
+            cur.execute("SELECT * FROM avanan_alerts ORDER BY entry_number DESC")
             entries = fetch_all_dicts(cur)
         return jsonify(entries)
     except Exception as e:
@@ -207,9 +195,6 @@ def entry_by_id(entry_id):
         app.logger.error(f"Entry by ID error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
-
 @app.route("/api/update-tenants", methods=["POST"])
 def update_all_tenants():
     """Update all avanan_alerts entries with the correct tenant name based on tenant_domains."""
@@ -233,3 +218,30 @@ def update_all_tenants():
     except Exception as e:
         app.logger.error(f"Failed to update tenants: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/upload-csv', methods=['POST'])
+def upload_csv():
+    if 'file' not in request.files:
+        return {"error": "No file uploaded"}, 400
+    file = request.files['file']
+    if not file.filename.endswith('.csv'):
+        return {"error": "File must be a CSV"}, 400
+
+    reader = csv.DictReader(file.stream.read().decode("utf-8").splitlines())
+    conn = get_db()
+    with conn.cursor() as cur:
+        for row in reader:
+            # Adjust columns as needed
+            cur.execute("""
+                INSERT INTO avanan_alerts
+                (timestamp, tenant, user_email, ip1, ip1_city, ip1_state, ip1_country, ip1_isp,
+                 ip2, ip2_city, ip2_state, ip2_country, ip2_isp)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT DO NOTHING
+            """, (
+                row.get("timestamp"), row.get("tenant"), row.get("user_email"),
+                row.get("ip1"), row.get("ip1_city"), row.get("ip1_state"), row.get("ip1_country"), row.get("ip1_isp"),
+                row.get("ip2"), row.get("ip2_city"), row.get("ip2_state"), row.get("ip2_country"), row.get("ip2_isp"),
+            ))
+        conn.commit()
+    return {"status": "success"}

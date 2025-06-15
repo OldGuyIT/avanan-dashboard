@@ -7,9 +7,8 @@ const rainbowColors = [
 export default function LastEntriesTable({ entries }) {
   if (!entries || entries.length === 0) return null;
 
-  const lastEntries = [...entries]
-    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-    .slice(0, 5); // Only show last 5
+  // Sort by entry_number descending (newest first)
+  const sortedEntries = [...entries].sort((a, b) => b.entry_number - a.entry_number);
 
   return (
     <div className="table-scroll">
@@ -28,7 +27,7 @@ export default function LastEntriesTable({ entries }) {
           </tr>
         </thead>
         <tbody>
-          {lastEntries.map((entry, idx) => (
+          {sortedEntries.map((entry, idx) => (
             <React.Fragment key={entry.id || entry.timestamp}>
               <tr
                 style={idx === 0 ? { background: "#222a44", fontWeight: "bold" } : {}}

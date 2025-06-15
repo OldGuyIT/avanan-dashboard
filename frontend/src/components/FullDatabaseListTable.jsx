@@ -1,19 +1,26 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 
 // Table page sizes and column definitions
 const PAGE_SIZES = [25, 50, 100];
 const COLUMNS = [
-  { key: "timestamp", label: <>Date / Time</> },
-  { key: "tenant", label: <>Tenant</> },
-  { key: "user_email", label: <>User Email</> },
-  { key: "ip1", label: <>IP Address<br></br> 1</> },
-  { key: "ip1_city_state", label: <>IP 1 <br></br> City, State</> },
-  { key: "ip1_country", label: <>Country<br></br> 1</> },
-  { key: "ip1_isp", label: <>ISP 1</> },
-  { key: "ip2", label: <>IP Address<br></br> 2</> },
-  { key: "ip2_city_state", label: <>IP 2 <br></br> City, State</> },
-  { key: "ip2_country", label: <>Country<br></br> 2</> },
-  { key: "ip2_isp", label: <>ISP 2</> },
+  { key: "timestamp", label: <>Date / Time<br />&nbsp;</> },
+  { key: "tenant", label: <>Tenant<br />&nbsp;</> },
+  { key: "user_email", label: <>User Email<br />&nbsp;</> },
+  { key: "ip1", label: <>IP 1 <br />Address</> },
+  { key: "ip1_city_state", label: <>IP 1 <br />City, State</> },
+  { key: "ip1_country", label: <>IP 1 <br />Country</> },
+  { key: "ip1_isp", label: <>IP 1 <br />ISP</> },
+  { key: "ip2", label: <>IP 2 <br />Address</> },
+  { key: "ip2_city_state", label: <>IP 2 <br />City, State</> },
+  { key: "ip2_country", label: <>IP 2 <br />Country</> },
+  { key: "ip2_isp", label: <>IP 2 <br />ISP</> },
 ];
 
 // Helper to get column label as string for CSV export
@@ -31,14 +38,56 @@ function getColLabel(col) {
   return "";
 }
 
+// Dropdown filter for unique values in a column, with special handling for city/state
+function SelectColumnFilter({ column, table }) {
+  const columnId = column.id;
+  const options = useMemo(() => {
+    const opts = new Set();
+    table.getPreFilteredRowModel().rows.forEach(row => {
+      if (columnId === "ip1_city_state" || columnId === "ip2_city_state") {
+        const prefix = columnId.split('_')[0];
+        const city = row.original[`${prefix}_city`] || "";
+        const state = row.original[`${prefix}_state`] || "";
+        const combined = [city, state].filter(Boolean).join(", ");
+        if (combined) opts.add(combined);
+      } else {
+        const value = row.getValue(columnId);
+        if (value) opts.add(value);
+      }
+    });
+    return Array.from(opts).sort();
+  }, [columnId, table]);
+  return (
+    <select
+      className="select select-xs select-bordered w-full"
+      value={column.getFilterValue() || ""}
+      onChange={e => column.setFilterValue(e.target.value || undefined)}
+    >
+      <option value="">All</option>
+      {options.map((option, i) => (
+        <option key={i} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+// Custom filter for city/state combined columns
+function cityStateFilterFn(row, columnId, filterValue) {
+  const prefix = columnId.split('_')[0]; // "ip1" or "ip2"
+  const city = row.original[`${prefix}_city`] || "";
+  const state = row.original[`${prefix}_state`] || "";
+  const combined = [city, state].filter(Boolean).join(", ").toLowerCase();
+  return combined.includes((filterValue || "").toLowerCase());
+}
+
 export default function FullDatabaseListTable() {
   const [entries, setEntries] = useState([]);
   const [error, setError] = useState(null);
-  const [sortKey, setSortKey] = useState("timestamp");
-  const [sortAsc, setSortAsc] = useState(false);
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(0);
-  const [tenantFilter, setTenantFilter] = useState("");
+  const [uploadFile, setUploadFile] = useState(null);
 
   useEffect(() => {
     document.title = "Full Database List";
@@ -51,29 +100,68 @@ export default function FullDatabaseListTable() {
       .catch(() => setError("Could not load entries."));
   }, []);
 
-  // Filtering, sorting, and paging logic
-  const filtered = tenantFilter
-    ? entries.filter((e) =>
-        (e.tenant || "").toLowerCase().includes(tenantFilter.toLowerCase())
-      )
-    : entries;
+  // react-table columns
+  const columns = useMemo(
+    () =>
+      COLUMNS.map((col) => {
+        // Use custom filter for city/state columns
+        if (col.key === "ip1_city_state" || col.key === "ip2_city_state") {
+          return {
+            accessorKey: col.key,
+            header: col.label,
+            cell: info =>
+              `${info.row.original[`${col.key.split('_')[0]}_city`] || ""}${
+                info.row.original[`${col.key.split('_')[0]}_city`] &&
+                info.row.original[`${col.key.split('_')[0]}_state`]
+                  ? ", "
+                  : ""
+              }${info.row.original[`${col.key.split('_')[0]}_state`] || ""}`,
+            Filter: SelectColumnFilter,
+            filterFn: "cityStateFilterFn",
+          };
+        }
+        // Default for other columns
+        return {
+          accessorKey: col.key,
+          header: col.label,
+          cell: info => info.getValue() ?? "",
+          Filter: SelectColumnFilter,
+          filterFn: "equalsString",
+        };
+      }),
+    []
+  );
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (a[sortKey] < b[sortKey]) return sortAsc ? -1 : 1;
-    if (a[sortKey] > b[sortKey]) return sortAsc ? 1 : -1;
-    return 0;
+  const table = useReactTable({
+    data: entries,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    filterFns: { cityStateFilterFn },
+    state: {
+      pagination: { pageIndex: page, pageSize },
+    },
+    onPaginationChange: updater => {
+      if (typeof updater === "function") {
+        const next = updater({ pageIndex: page, pageSize });
+        setPage(next.pageIndex);
+        setPageSize(next.pageSize);
+      } else {
+        setPage(updater.pageIndex);
+        setPageSize(updater.pageSize);
+      }
+    },
+    manualPagination: false,
+    enableMultiSort: true,
   });
 
-  const pageCount = Math.ceil(sorted.length / pageSize);
-  const paged = sorted.slice(page * pageSize, (page + 1) * pageSize);
-
-  function handleSort(key) {
-    if (sortKey === key) setSortAsc((asc) => !asc);
-    else {
-      setSortKey(key);
-      setSortAsc(true);
-    }
-  }
+  // Pagination logic
+  const pagedRows = table.getRowModel().rows.slice(
+    page * pageSize,
+    (page + 1) * pageSize
+  );
+  const pageCount = Math.ceil(table.getRowModel().rows.length / pageSize);
 
   async function handleDownloadCSV() {
     try {
@@ -117,92 +205,98 @@ export default function FullDatabaseListTable() {
     }
   }
 
+  function handleDownloadTemplate() {
+    const headers = [
+      "timestamp", "tenant", "user_email",
+      "ip1", "ip1_city", "ip1_state", "ip1_country", "ip1_isp",
+      "ip2", "ip2_city", "ip2_state", "ip2_country", "ip2_isp"
+    ];
+    const csv = headers.join(",") + "\n";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "avanan-upload-template.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function handleFileChange(e) {
+    setUploadFile(e.target.files[0]);
+  }
+
+  async function handleUploadCSV() {
+    if (!uploadFile) return;
+    const formData = new FormData();
+    formData.append("file", uploadFile);
+    const res = await fetch("/api/upload-csv", {
+      method: "POST",
+      body: formData,
+    });
+    if (res.ok) {
+      alert("Upload successful!");
+      // Optionally refresh table data here
+    } else {
+      alert("Upload failed.");
+    }
+  }
+
   return (
-    <div className="main-container">
+    <div className="main-container" style={{ marginTop: "2em" }}>
       {error && <div className="error-message">{error}</div>}
 
-
-        <button onClick={handleDownloadCSV} className="btn">
-          Download CSV
-        </button>
-        <input
-          type="text"
-          placeholder="Filter by Tenant"
-          value={tenantFilter}
-          onChange={(e) => {
-            setTenantFilter(e.target.value);
-            setPage(0);
-          }}
-          className="tenant-filter-input"
-          style={{
-            color: "#fff",
-            background: "#222",
-            border: "1px solid #444",
-            borderRadius: "4px",
-            padding: ".5em",
-          }}
-        />
-        <label style={{ color: "#fff" }}>
-          Show{" "}
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setPage(0);
-            }}
-            style={{
-              color: "#fff",
-              background: "#222",
-              border: "1px solid #444",
-              borderRadius: "4px",
-              padding: ".5em",
-            }}
-          >
-            {PAGE_SIZES.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>{" "}
-          entries
-        </label>
-
+      <button onClick={handleDownloadCSV} className="btn">
+        Download CSV
+      </button>
+      <button onClick={handleDownloadTemplate} className="btn">
+        Download Template
+      </button>
+      
 
       {/* Table */}
       <div className="table-scroll">
         <table className="custom-table auto-table">
           <thead>
-            <tr>
-              {COLUMNS.map((col) => (
-                <th
-                  key={col.key}
-                  onClick={() => handleSort(col.key)}
-                  className="sortable"
-                >
-                  {col.label} {sortKey === col.key ? (sortAsc ? "▲" : "▼") : ""}
-                </th>
-              ))}
-              <th></th>
-            </tr>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id}>
+                    <div
+                      style={{ cursor: "pointer" }}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {{
+                        asc: " ▲",
+                        desc: " ▼",
+                      }[header.column.getIsSorted()] ?? ""}
+                    </div>
+                    <div>
+                      {header.column.columnDef.Filter ? (
+                        <header.column.columnDef.Filter
+                          column={header.column}
+                          table={table}
+                        />
+                      ) : null}
+                    </div>
+                  </th>
+                ))}
+                <th></th>
+              </tr>
+            ))}
           </thead>
           <tbody>
-            {paged.map((row, i) => (
-              <tr key={i}>
-                {COLUMNS.map((col) => (
-                  <td key={col.key}>
-                    {col.key === "ip1_city_state"
-                      ? `${row.ip1_city || ""}${row.ip1_city && row.ip1_state ? ", " : ""}${row.ip1_state || ""}`
-                      : col.key === "ip2_city_state"
-                      ? `${row.ip2_city || ""}${row.ip2_city && row.ip2_state ? ", " : ""}${row.ip2_state || ""}`
-                      : row[col.key] !== undefined && row[col.key] !== null
-                      ? String(row[col.key])
-                      : ""}
-                  </td>
+            {pagedRows.map(row => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                 ))}
                 <td>
                   <button
                     className="btn btn-danger"
-                    onClick={() => handleRemove(row.id)}
+                    onClick={() => handleRemove(row.original.id)}
                   >
                     Remove
                   </button>
@@ -211,9 +305,9 @@ export default function FullDatabaseListTable() {
             ))}
           </tbody>
         </table>
-        {paged.length === 0 && (
+        {pagedRows.length === 0 && (
           <div className="no-entries-message">
-            No entries found for this tenant.
+            No entries found.
           </div>
         )}
       </div>
@@ -229,7 +323,31 @@ export default function FullDatabaseListTable() {
         >
           Next
         </button>
-          <span className="table-page-info" style={{ color: "#fff" }}>
+        <label style={{ color: "#fff" }}>
+        Show{" "}
+        <select
+          value={pageSize}
+          onChange={(e) => {
+            setPageSize(Number(e.target.value));
+            setPage(0);
+          }}
+          style={{
+            color: "#fff",
+            background: "#222",
+            border: "1px solid #444",
+            borderRadius: "4px",
+            padding: ".5em",
+          }}
+        >
+          {PAGE_SIZES.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>{" "}
+        entries
+      </label>
+        <span className="table-page-info" style={{ color: "#fff" }}>
           Page {page + 1} of {pageCount}
         </span>
       </div>
